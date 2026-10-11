@@ -3,34 +3,35 @@
 import { BellRing, CircleHelp, Flag, ListChecks, Mail, MessageSquareText, MoveVertical, PhoneCall, Smartphone, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// The BloodLine heart: nine flat bars on a 4-unit pitch; the seventh is the green accent.
+const LOGO_BARS: [x: number, y: number, h: number][] = [
+  [0, 10.5, 10.5], [4, 7, 18.5], [8, 4, 27], [12, 5.5, 30], [16, 9, 29.5],
+  [20, 5.5, 30], [24, 4, 27], [28, 7, 18.5], [32, 10.5, 10.5],
+];
+
 export function Logo({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={cn("size-8", className)} aria-hidden="true">
-      <defs>
-        <linearGradient id="bl-drop" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="oklch(0.66 0.13 185)" />
-          <stop offset="100%" stopColor="oklch(0.3 0.07 258)" />
-        </linearGradient>
-      </defs>
-      <path d="M16 2.5c5.6 6.8 10 12 10 17.2A10 10 0 0 1 6 19.7C6 14.5 10.4 9.3 16 2.5Z" fill="url(#bl-drop)" />
-      <path d="M8.5 20h4l1.6-3.6 2.6 7 2-5 1.2 1.6h3.6" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 4 35 34.5" className={cn("size-8", className)} aria-hidden="true">
+      {LOGO_BARS.map(([x, y, h], i) => (
+        <rect key={x} x={x} y={y} width={3} height={h} className={i === 6 ? "fill-[#1e9e5e] dark:fill-[#56db8b]" : "fill-primary"} />
+      ))}
     </svg>
   );
 }
 
 const REASONS: Record<string, { label: string; icon: LucideIcon; className: string }> = {
-  lab_flag: { label: "Lab flag", icon: Flag, className: "bg-primary/[0.06] text-primary ring-primary/15" },
-  outside_range: { label: "Outside range", icon: MoveVertical, className: "bg-review-soft text-review-foreground ring-review/30" },
-  gp_rule: { label: "GP rule", icon: ListChecks, className: "bg-brand-soft text-accent-foreground ring-brand/30" },
-  couldnt_check: { label: "Couldn't check", icon: CircleHelp, className: "bg-review-soft text-review-foreground ring-review/40" },
+  lab_flag: { label: "Lab flag", icon: Flag, className: "bg-secondary text-primary" },
+  outside_range: { label: "Outside range", icon: MoveVertical, className: "bg-review-soft text-review-foreground" },
+  gp_rule: { label: "GP rule", icon: ListChecks, className: "bg-brand-soft text-primary" },
+  couldnt_check: { label: "Couldn't check", icon: CircleHelp, className: "bg-review-soft text-review-foreground" },
 };
 
 export function ReasonChip({ reason, className }: { reason: string; className?: string }) {
-  const r = REASONS[reason] ?? { label: reason, icon: BellRing, className: "bg-muted text-muted-foreground ring-border" };
+  const r = REASONS[reason] ?? { label: reason, icon: BellRing, className: "bg-muted text-muted-foreground" };
   const Icon = r.icon;
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset whitespace-nowrap", r.className, className)}>
-      <Icon className="size-3" />
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium whitespace-nowrap", r.className, className)}>
+      <Icon className="size-3" strokeWidth={1.75} />
       {r.label}
     </span>
   );
@@ -64,12 +65,12 @@ export function channelLabel(channel: string): string {
 
 export function StatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    sent: "bg-success-soft text-[oklch(0.42_0.11_155)] ring-success/30",
-    simulated: "bg-muted text-muted-foreground ring-border",
-    failed: "bg-destructive/10 text-destructive ring-destructive/25",
+    sent: "bg-success-soft text-success",
+    simulated: "bg-muted text-muted-foreground",
+    failed: "bg-destructive/10 text-destructive",
   };
   return (
-    <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ring-1 ring-inset", styles[status] ?? styles.simulated)}>
+    <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize", styles[status] ?? styles.simulated)}>
       {status}
     </span>
   );
@@ -77,11 +78,11 @@ export function StatusPill({ status }: { status: string }) {
 
 export function SectionTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="grid size-7 place-items-center rounded-lg bg-brand-soft text-accent-foreground">
-        <Icon className="size-4" />
+    <div className="flex items-center gap-3">
+      <span className="grid size-10 place-items-center rounded-full bg-secondary text-primary">
+        <Icon className="size-[18px]" strokeWidth={1.75} />
       </span>
-      <div className="text-sm font-semibold tracking-tight">{title}</div>
+      <div className="text-lg font-medium tracking-tight">{title}</div>
     </div>
   );
 }

@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { ChevronRight, ListChecks } from "lucide-react-native";
+import { ListChecks } from "lucide-react-native";
 import { FlatList, StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
-import { PressableScale, T, formatDate } from "@/components/ui";
+import { ArrowCircle, Avatar, Chip, PressableScale, T, Title, formatDate } from "@/components/ui";
 import { rise, stagger } from "@/motion";
 import { useSession } from "@/session";
-import { colors, radius, shadow } from "@/theme";
+import { colors, radius } from "@/theme";
 
 function age(dob: string): number {
   const d = new Date(dob);
@@ -24,45 +24,37 @@ export default function PatientsScreen() {
 
   return (
     <FlatList
+      style={{ backgroundColor: colors.background }}
       data={patients.data ?? []}
       keyExtractor={(p) => p.id}
-      contentContainerStyle={{ padding: 16, paddingTop: insets.top + 12, gap: 10 }}
+      contentContainerStyle={{ padding: 18, paddingTop: insets.top + 16, gap: 12 }}
       ListHeaderComponent={
-        <View style={{ gap: 10, marginBottom: 6 }}>
-          <T weight="bold" size={28}>
-            Patients
-          </T>
+        <View style={{ marginBottom: 10 }}>
+          <Title strong="Patients" />
         </View>
       }
       renderItem={({ item, index }) => (
         <Animated.View entering={rise(stagger(index))}>
           <PressableScale onPress={() => router.push({ pathname: "/patient/[id]", params: { id: item.id } })} style={styles.row}>
-            <View style={styles.avatar}>
-              <T weight="semibold" size={15} color={colors.navy}>
-                {item.name.split(" ").map((p) => p[0]).join("")}
-              </T>
-            </View>
-            <View style={{ flex: 1 }}>
-              <T weight="semibold" size={16}>
+            <Avatar name={item.name} size={50} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <T weight="medium" size={17} numberOfLines={1}>
                 {item.name}
               </T>
-              <T size={13} color={colors.textMuted}>
+              <T size={13} color={colors.textMuted} numberOfLines={1}>
                 {item.sex === "F" ? "Female" : "Male"}, {age(item.dateOfBirth)} · {item.practiceRef}
               </T>
-              <T size={12} color={colors.textFaint}>
+              <T size={12} color={colors.textFaint} numberOfLines={1}>
                 {item.lastResultAt ? `Last result ${formatDate(item.lastResultAt)}` : "No results yet"}
                 {item.usualGp ? ` · ${item.usualGp.name}` : ""}
               </T>
+              {item.activeRules > 0 ? (
+                <View style={{ flexDirection: "row", marginTop: 6 }}>
+                  <Chip label={`${item.activeRules} rule${item.activeRules === 1 ? "" : "s"}`} icon={ListChecks} bg={colors.sky} />
+                </View>
+              ) : null}
             </View>
-            {item.activeRules > 0 ? (
-              <View style={styles.rules}>
-                <ListChecks size={13} color={colors.tealDeep} />
-                <T weight="semibold" size={12} color={colors.tealDeep}>
-                  {item.activeRules}
-                </T>
-              </View>
-            ) : null}
-            <ChevronRight size={18} color={colors.textFaint} />
+            <ArrowCircle />
           </PressableScale>
         </Animated.View>
       )}
@@ -71,7 +63,5 @@ export default function PatientsScreen() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: radius.lg, padding: 14, ...shadow },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.navySoft, alignItems: "center", justifyContent: "center" },
-  rules: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.tealSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
+  row: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: 16 },
 });

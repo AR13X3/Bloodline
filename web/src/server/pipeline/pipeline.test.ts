@@ -55,7 +55,7 @@ describe("synthetic report PDFs", () => {
   });
 });
 
-describe("ingestReport (AI not configured, so the labelled simulator fallback is used)", () => {
+describe("ingestReport (OCR not configured, so the labelled simulator fallback is used)", () => {
   it("logs a normal result without alerting anyone", async () => {
     const db = freshDb();
     const { summary } = await send(db, "normal");
@@ -134,8 +134,8 @@ describe("ingestReport (AI not configured, so the labelled simulator fallback is
   });
 });
 
-describe("ingestReport with AI and live messages (network mocked)", () => {
-  it("uses the AI transcription, caches it, and sends real-format requests to the providers", async () => {
+describe("ingestReport with OCR and live messages (network mocked)", () => {
+  it("uses the OCR transcription, caches it, and sends real-format requests to the providers", async () => {
     Object.assign(process.env, {
       OPENROUTER_API_KEY: "test-key",
       RESEND_API_KEY: "test-resend",
@@ -170,14 +170,14 @@ describe("ingestReport with AI and live messages (network mocked)", () => {
     db.prepare("UPDATE clinicians SET notify_voice = 1 WHERE id = 'gp_chen'").run();
 
     const first = await send(db, "rule_match");
-    expect(first.summary.extraction).toMatchObject({ source: "ai", model: "anthropic/claude-haiku-5.5", costUsd: 0.0003 });
+    expect(first.summary.extraction).toMatchObject({ source: "ocr", model: "anthropic/claude-haiku-5.5", costUsd: 0.0003 });
     expect(first.summary.alerts[0].reasons).toEqual(["gp_rule"]);
     expect(first.summary.patientCheck).toEqual({ nameOnReport: "FLETCHER, Tom", filedAs: "Tom Fletcher", matches: true });
     expect(first.summary.notifications.map((n) => `${n.channel}:${n.status}`)).toEqual(["app:sent", "email:sent", "sms:sent", "voice:sent"]);
 
-    const aiBody = JSON.parse(calls.find((c) => c.url.includes("openrouter"))!.body);
-    expect(aiBody.response_format.json_schema.strict).toBe(true);
-    expect(aiBody.messages[0].content[1].file.file_data).toMatch(/^data:application\/pdf;base64,/);
+    const ocrBody = JSON.parse(calls.find((c) => c.url.includes("openrouter"))!.body);
+    expect(ocrBody.response_format.json_schema.strict).toBe(true);
+    expect(ocrBody.messages[0].content[1].file.file_data).toMatch(/^data:application\/pdf;base64,/);
 
     const sms = new URLSearchParams(calls.find((c) => c.url.endsWith("Messages.json"))!.body);
     expect(sms.get("Body")).toBe("BloodLine: You have 1 new result to review. Open the app.");
@@ -187,11 +187,11 @@ describe("ingestReport with AI and live messages (network mocked)", () => {
     // No patient details in any message.
     for (const c of calls.filter((c) => !c.url.includes("openrouter"))) expect(c.body).not.toMatch(/Fletcher|Potassium|5\.1/);
 
-    // Same PDF again (new message id): served from the cache, no second AI call.
-    const aiCallsBefore = calls.filter((c) => c.url.includes("openrouter")).length;
+    // Same PDF again (new message id): served from the cache, no second OCR call.
+    const ocrCallsBefore = calls.filter((c) => c.url.includes("openrouter")).length;
     const second = await send(db, "rule_match");
     expect(second.summary.extraction?.source).toBe("cache");
-    expect(calls.filter((c) => c.url.includes("openrouter")).length).toBe(aiCallsBefore);
+    expect(calls.filter((c) => c.url.includes("openrouter")).length).toBe(ocrCallsBefore);
   });
 
   it("records a failed send without stopping the pipeline", async () => {

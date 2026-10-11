@@ -1,4 +1,4 @@
-// Receive report -> ignore duplicates -> store PDF -> read (cache/AI) ->
+// Receive report -> ignore duplicates -> store PDF -> read (cache/OCR) ->
 // validate -> three checks -> route -> alert -> notify -> audit.
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -24,14 +24,14 @@ export interface IngestInput {
   requestingClinicianId: string;
   labName: string;
   collectedAt: string;
-  /** Simulator only: what was printed, used as a labelled fallback if AI reading is unavailable. */
+  /** Simulator only: what was printed, used as a labelled fallback if OCR is unavailable. */
   sourceRows?: ExtractedResult[];
   sourcePatientName?: string;
   actor?: string;
 }
 
 export interface ExtractionInfo {
-  source: "cache" | "ai" | "fallback" | "failed";
+  source: "cache" | "ocr" | "fallback" | "failed";
   model: string | null;
   costUsd: number | null;
   note: string | null;
@@ -122,7 +122,7 @@ export async function ingestReport(db: DatabaseSync, input: IngestInput): Promis
     extraction.source === "failed"
       ? { source: "failed", model: null, costUsd: null, note: extraction.error }
       : extraction.source === "fallback"
-        ? { source: "fallback", model: null, costUsd: null, note: `AI unavailable (${extraction.reason}). Used the simulator's printed values.` }
+        ? { source: "fallback", model: null, costUsd: null, note: `OCR unavailable (${extraction.reason}). Used the simulator's printed values.` }
         : { source: extraction.source, model: extraction.model, costUsd: extraction.costUsd, note: null };
   db.prepare(
     `UPDATE reports SET status = ?, extraction_source = ?, extraction_model = ?, extraction_cost_usd = ?, extraction_note = ?, error = ?

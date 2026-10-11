@@ -3,8 +3,9 @@ import type { DatabaseSync } from "node:sqlite";
 import { positionInRange, type RangePosition } from "./checks/range";
 import { COULDNT_CHECK_LABELS, type AlertReason, type CouldntCheckReason } from "./checks/types";
 import { liveMessagesOn } from "./db/settings";
-import { aiConfigured } from "./extraction/ai";
+import { ocrConfigured } from "./extraction/ocr";
 import { emailConfigured, twilioConfigured } from "./notify/providers";
+import { getRepeatSettings } from "./notify/repeats";
 
 const json = <T>(s: string | null): T => (s ? JSON.parse(s) : null) as T;
 
@@ -41,6 +42,9 @@ export interface ClinicianSettings {
   coveringClinicianId: string | null;
   colleagues: { id: string; name: string; away: boolean }[];
   liveMessages: boolean;
+  /** Nudge again if an alert is still unseen, after each of these delays in minutes (up to two). */
+  repeatAlerts: boolean;
+  repeatAfterMinutes: number[];
 }
 
 export function getClinicianSettings(db: DatabaseSync, id: string): ClinicianSettings | null {
@@ -48,6 +52,7 @@ export function getClinicianSettings(db: DatabaseSync, id: string): ClinicianSet
     | { id: string; name: string; email: string | null; mobile: string | null; notify_app: number; notify_email: number; notify_sms: number; notify_voice: number; away: number; covering_clinician_id: string | null }
     | undefined;
   if (!c) return null;
+  const repeats = getRepeatSettings(db, id);
   const colleagues = (db.prepare("SELECT id, name, away FROM clinicians WHERE id != ? ORDER BY name").all(id) as { id: string; name: string; away: number }[]).map(
     (x) => ({ id: x.id, name: x.name, away: x.away === 1 }),
   );
@@ -64,6 +69,8 @@ export function getClinicianSettings(db: DatabaseSync, id: string): ClinicianSet
     coveringClinicianId: c.covering_clinician_id,
     colleagues,
     liveMessages: liveMessagesOn(db),
+    repeatAlerts: repeats.on,
+    repeatAfterMinutes: repeats.afterMinutes,
   };
 }
 
@@ -79,10 +86,14 @@ export interface AlertListItem {
   handedOverFrom: { id: string; name: string } | null;
   recipient: { id: string; name: string };
   reportId: string;
+  /** When the latest repeat about this alert's report went out, if any. */
+  lastRepeatAt: string | null;
 }
 
 const ALERT_SELECT = `
   SELECT a.id, a.created_at, a.seen_at, a.reasons, a.report_id,
+         (SELECT MAX(rr.sent_at) FROM repeat_reminders rr
+           WHERE rr.report_id = a.report_id AND rr.clinician_id = a.recipient_clinician_id AND rr.status = 'sent') AS last_repeat_at,
          p.id AS patient_id, p.display_name AS patient_name,
          r.test_name_raw, r.value_raw, r.unit_raw, r.lab_flag_raw, r.check_status,
          rc.id AS recipient_id, rc.name AS recipient_name,
@@ -94,7 +105,7 @@ const ALERT_SELECT = `
   JOIN clinicians oc ON oc.id = a.original_clinician_id`;
 
 interface AlertRow {
-  id: string; created_at: string; seen_at: string | null; reasons: string; report_id: string;
+  id: string; created_at: string; seen_at: string | null; reasons: string; report_id: string; last_repeat_at: string | null;
   patient_id: string; patient_name: string;
   test_name_raw: string; value_raw: string; unit_raw: string | null; lab_flag_raw: string | null; check_status: string;
   recipient_id: string; recipient_name: string; original_id: string; original_name: string;
@@ -111,6 +122,7 @@ function toAlertItem(r: AlertRow): AlertListItem {
     handedOverFrom: r.original_id !== r.recipient_id ? { id: r.original_id, name: r.original_name } : null,
     recipient: { id: r.recipient_id, name: r.recipient_name },
     reportId: r.report_id,
+    lastRepeatAt: r.last_repeat_at,
   };
 }
 
@@ -453,12 +465,12 @@ export function getReportFileName(db: DatabaseSync, reportId: string): string | 
 // ---------- Dashboard ----------
 
 export interface DashboardFeed {
-  stats: { reports: number; alerts: number; unseen: number; couldntCheck: number; aiCostUsd: number; aiReads: number; cacheHits: number };
+  stats: { reports: number; alerts: number; unseen: number; couldntCheck: number; ocrCostUsd: number; ocrReads: number; cacheHits: number };
   liveMessages: boolean;
-  providers: { ai: boolean; email: boolean; twilio: boolean };
+  providers: { ocr: boolean; email: boolean; twilio: boolean };
   reports: { id: string; receivedAt: string; patientName: string; gpName: string; origin: string; status: string; extractionSource: string | null; nameMatches: boolean | null; results: number; alerts: number }[];
   alerts: AlertListItem[];
-  notifications: { id: string; createdAt: string; channel: string; status: string; recipient: string | null; detail: string | null; gpName: string }[];
+  notifications: { id: string; createdAt: string; channel: string; status: string; recipient: string | null; detail: string | null; gpName: string; repeat: number }[];
   audit: { id: number; at: string; actor: string; action: string; entityType: string | null; detail: string | null }[];
 }
 
@@ -470,12 +482,12 @@ export function getDashboardFeed(db: DatabaseSync): DashboardFeed {
       alerts: one("SELECT COUNT(*) AS n FROM alerts"),
       unseen: one("SELECT COUNT(*) AS n FROM alerts WHERE seen_at IS NULL"),
       couldntCheck: one("SELECT COUNT(*) AS n FROM results WHERE check_status = 'couldnt_check'"),
-      aiCostUsd: one("SELECT SUM(extraction_cost_usd) AS n FROM reports WHERE extraction_source = 'ai'"),
-      aiReads: one("SELECT COUNT(*) AS n FROM reports WHERE extraction_source = 'ai'"),
+      ocrCostUsd: one("SELECT SUM(extraction_cost_usd) AS n FROM reports WHERE extraction_source = 'ocr'"),
+      ocrReads: one("SELECT COUNT(*) AS n FROM reports WHERE extraction_source = 'ocr'"),
       cacheHits: one("SELECT COUNT(*) AS n FROM reports WHERE extraction_source = 'cache'"),
     },
     liveMessages: liveMessagesOn(db),
-    providers: { ai: aiConfigured(), email: emailConfigured(), twilio: twilioConfigured() },
+    providers: { ocr: ocrConfigured(), email: emailConfigured(), twilio: twilioConfigured() },
     reports: (db
       .prepare(
         `SELECT rep.id, rep.received_at, rep.origin, rep.status, rep.extraction_source, rep.patient_name_matches, p.display_name AS patient_name, c.name AS gp_name,
@@ -502,12 +514,12 @@ export function getDashboardFeed(db: DatabaseSync): DashboardFeed {
     alerts: (db.prepare(`${ALERT_SELECT} ORDER BY a.created_at DESC LIMIT 30`).all() as unknown as AlertRow[]).map(toAlertItem),
     notifications: (db
       .prepare(
-        `SELECT n.id, n.created_at, n.channel, n.status, n.recipient_masked, n.error, c.name AS gp_name
+        `SELECT n.id, n.created_at, n.channel, n.status, n.recipient_masked, n.error, n.repeat_number, c.name AS gp_name
          FROM notifications n JOIN alerts a ON a.id = n.alert_id JOIN clinicians c ON c.id = a.recipient_clinician_id
          ORDER BY n.created_at DESC, n.rowid DESC LIMIT 30`,
       )
-      .all() as { id: string; created_at: string; channel: string; status: string; recipient_masked: string | null; error: string | null; gp_name: string }[]).map((n) => ({
-      id: n.id, createdAt: n.created_at, channel: n.channel, status: n.status, recipient: n.recipient_masked, detail: n.error, gpName: n.gp_name,
+      .all() as { id: string; created_at: string; channel: string; status: string; recipient_masked: string | null; error: string | null; repeat_number: number; gp_name: string }[]).map((n) => ({
+      id: n.id, createdAt: n.created_at, channel: n.channel, status: n.status, recipient: n.recipient_masked, detail: n.error, gpName: n.gp_name, repeat: n.repeat_number,
     })),
     audit: (db.prepare("SELECT id, at, actor, action, entity_type, detail FROM audit_events ORDER BY id DESC LIMIT 50").all() as {
       id: number; at: string; actor: string; action: string; entity_type: string | null; detail: string | null;

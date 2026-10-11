@@ -60,7 +60,7 @@ export function transaction<T>(db: Db, fn: () => T): T {
   }
 }
 
-/** Clears everything except the AI extraction cache, then reseeds. */
+/** Clears everything except the OCR cache, then reseeds. */
 export function resetDemo(db: Db, seed: SeedOptions = seedOptionsFromEnv()): void {
   transaction(db, () => {
     for (const table of RESETTABLE_TABLES) db.exec(`DELETE FROM ${table}`);

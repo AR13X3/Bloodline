@@ -48,13 +48,13 @@ export function DeliveryCard({ feed }: { feed: DashboardFeed | undefined }) {
           const checked = key ? Boolean(s?.[key]) : true;
           const missing = c.key !== "app" && !contact;
           return (
-            <div key={c.key} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/50">
-              <span className={cn("grid size-8 place-items-center rounded-lg ring-1 ring-inset", checked && !missing ? "bg-brand-soft text-accent-foreground ring-brand/25" : "bg-muted text-muted-foreground ring-border")}>
-                <c.icon className="size-4" />
+            <div key={c.key} className="flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-secondary/60">
+              <span className={cn("grid size-10 place-items-center rounded-full", checked && !missing ? "bg-brand-soft text-primary" : "bg-secondary text-muted-foreground")}>
+                <c.icon className="size-[18px]" strokeWidth={1.75} />
               </span>
               <div className="min-w-0 flex-1 leading-tight">
                 <div className="text-sm font-medium">{c.key === "voice" ? "Phone call" : c.label === "App" ? "In-app alert" : c.label}</div>
-                <div className="truncate font-mono text-[11px] text-muted-foreground">
+                <div className="truncate text-xs text-muted-foreground">
                   {missing ? `Set DEMO_GP_${c.key === "email" ? "EMAIL" : "MOBILE"} in .env.local` : shown}
                   {c.key !== "app" && !missing && checked ? (live && configured[c.key] ? " · live" : " · simulated") : ""}
                 </div>
@@ -68,13 +68,13 @@ export function DeliveryCard({ feed }: { feed: DashboardFeed | undefined }) {
             </div>
           );
         })}
-        <div className="mt-2 flex items-center gap-3 rounded-lg border-t px-2 pt-3">
-          <span className={cn("grid size-8 place-items-center rounded-lg ring-1 ring-inset", s?.away ? "bg-review-soft text-review-foreground ring-review/40" : "bg-muted text-muted-foreground ring-border")}>
-            <Plane className="size-4" />
+        <div className="mt-2 flex items-center gap-3 border-t px-2 pt-3">
+          <span className={cn("grid size-10 place-items-center rounded-full", s?.away ? "bg-review-soft text-review-foreground" : "bg-secondary text-muted-foreground")}>
+            <Plane className="size-[18px]" strokeWidth={1.75} />
           </span>
           <div className="flex-1 leading-tight">
             <div className="text-sm font-medium">Away</div>
-            <div className="text-[11px] text-muted-foreground">{s?.away ? `Alerts go to ${s.colleagues.find((x) => x.id === s.coveringClinicianId)?.name ?? "a colleague"}` : "Hand alerts to a colleague"}</div>
+            <div className="text-xs text-muted-foreground">{s?.away ? `Alerts go to ${s.colleagues.find((x) => x.id === s.coveringClinicianId)?.name ?? "a colleague"}` : "Hand alerts to a colleague"}</div>
           </div>
           <Switch
             checked={Boolean(s?.away)}
@@ -88,11 +88,13 @@ export function DeliveryCard({ feed }: { feed: DashboardFeed | undefined }) {
   );
 }
 
-function Stat({ label, value, decimals = 0, prefix, tone }: { label: string; value: number; decimals?: number; prefix?: string; tone?: "review" | "brand" }) {
+/** A summary tile: label on top, a large light number below. A dark tile marks what needs attention. */
+function Stat({ label, value, decimals = 0, prefix, dark }: { label: string; value: number; decimals?: number; prefix?: string; dark?: boolean }) {
   return (
-    <div className="rounded-xl bg-muted/40 p-3 ring-1 ring-border/60 ring-inset">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={cn("mt-1 font-mono text-2xl font-semibold tabular-nums tracking-tight", tone === "review" && value > 0 && "text-review-foreground", tone === "brand" && "text-accent-foreground")}>
+    <div className={cn("@container flex min-h-28 flex-col justify-between rounded-[1.25rem] p-4 transition-colors duration-200", dark ? "bg-primary text-primary-foreground" : "bg-secondary text-primary")}>
+      <div className={cn("text-sm", dark ? "text-primary-foreground/80" : "text-muted-foreground")}>{label}</div>
+      {/* Sized to the tile, so "$0.0012" fits the narrow column as well as a single digit. */}
+      <div className="text-[clamp(1.25rem,24cqi,2.25rem)] leading-tight font-light tabular-nums tracking-tight">
         {prefix}
         <NumberTicker value={value} decimalPlaces={decimals} />
       </div>
@@ -107,11 +109,11 @@ export function StatsCard({ feed }: { feed: DashboardFeed | undefined }) {
       <CardHeader>
         <SectionTitle icon={BellRing} title="This session" />
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-2.5">
+      <CardContent className="grid grid-cols-2 gap-3">
         <Stat label="Reports" value={st?.reports ?? 0} />
-        <Stat label="Alerts" value={st?.alerts ?? 0} tone="review" />
-        <Stat label="Not yet seen" value={st?.unseen ?? 0} tone="review" />
-        <Stat label="AI cost" value={st?.aiCostUsd ?? 0} decimals={4} prefix="$" tone="brand" />
+        <Stat label="Alerts" value={st?.alerts ?? 0} />
+        <Stat label="Not yet seen" value={st?.unseen ?? 0} dark={(st?.unseen ?? 0) > 0} />
+        <Stat label="OCR cost" value={st?.ocrCostUsd ?? 0} decimals={4} prefix="$" />
       </CardContent>
     </Card>
   );

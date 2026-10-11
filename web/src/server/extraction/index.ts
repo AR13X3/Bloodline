@@ -1,11 +1,11 @@
-// Gets the transcribed results for a report: from the cache, from the AI,
+// Gets the transcribed results for a report: from the cache, from OCR,
 // or (simulator reports only, clearly labelled) from what the simulator printed.
 import type { DatabaseSync } from "node:sqlite";
 import type { ExtractedResult } from "../checks/types";
-import { aiConfigured, extractWithAi } from "./ai";
+import { extractWithOcr, ocrConfigured } from "./ocr";
 
 export type ExtractionOutcome =
-  | { source: "cache" | "ai"; results: ExtractedResult[]; patientName: string | null; model: string; costUsd: number | null }
+  | { source: "cache" | "ocr"; results: ExtractedResult[]; patientName: string | null; model: string; costUsd: number | null }
   | { source: "fallback"; results: ExtractedResult[]; patientName: string | null; reason: string }
   | { source: "failed"; error: string };
 
@@ -31,25 +31,25 @@ export async function extractReport(
     return { source: "cache", results, patientName, model: cached.model, costUsd: 0 };
   }
 
-  let aiError: string;
-  if (aiConfigured()) {
+  let ocrError: string;
+  if (ocrConfigured()) {
     try {
-      const ai = await extractWithAi(input.pdf, input.fileName);
-      const toCache: CachedExtraction = { results: ai.results, patientName: ai.patientName };
+      const ocr = await extractWithOcr(input.pdf, input.fileName);
+      const toCache: CachedExtraction = { results: ocr.results, patientName: ocr.patientName };
       db.prepare(
         `INSERT OR REPLACE INTO extraction_cache (file_hash, model, extraction_json, input_tokens, output_tokens, cost_usd, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      ).run(input.fileHash, ai.model, JSON.stringify(toCache), ai.inputTokens, ai.outputTokens, ai.costUsd, new Date().toISOString());
-      return { source: "ai", results: ai.results, patientName: ai.patientName, model: ai.model, costUsd: ai.costUsd };
+      ).run(input.fileHash, ocr.model, JSON.stringify(toCache), ocr.inputTokens, ocr.outputTokens, ocr.costUsd, new Date().toISOString());
+      return { source: "ocr", results: ocr.results, patientName: ocr.patientName, model: ocr.model, costUsd: ocr.costUsd };
     } catch (err) {
-      aiError = err instanceof Error ? err.message : String(err);
+      ocrError = err instanceof Error ? err.message : String(err);
     }
   } else {
-    aiError = "AI reading is not configured";
+    ocrError = "OCR is not configured";
   }
 
   if (input.sourceRows?.length) {
-    return { source: "fallback", results: input.sourceRows, patientName: input.sourcePatientName ?? null, reason: aiError };
+    return { source: "fallback", results: input.sourceRows, patientName: input.sourcePatientName ?? null, reason: ocrError };
   }
-  return { source: "failed", error: aiError };
+  return { source: "failed", error: ocrError };
 }

@@ -22,6 +22,9 @@ export interface ClinicianSettings {
   coveringClinicianId: string | null;
   colleagues: { id: string; name: string; away: boolean }[];
   liveMessages: boolean;
+  /** Nudge again if an alert is still unseen, after each of these delays in minutes (up to two). */
+  repeatAlerts: boolean;
+  repeatAfterMinutes: number[];
 }
 
 export interface AlertListItem {
@@ -34,6 +37,8 @@ export interface AlertListItem {
   handedOverFrom: { id: string; name: string } | null;
   recipient: { id: string; name: string };
   reportId: string;
+  /** When the latest repeat about this alert went out, if any. */
+  lastRepeatAt: string | null;
 }
 
 export interface AlertDetail extends AlertListItem {

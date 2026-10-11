@@ -1,7 +1,7 @@
 // SQLite schema for the BloodLine demo. All data is synthetic.
 // Timestamps are ISO 8601 strings. JSON columns hold JSON text.
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 5;
 
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS clinicians (
@@ -15,6 +15,10 @@ CREATE TABLE IF NOT EXISTS clinicians (
   notify_voice          INTEGER NOT NULL DEFAULT 0,
   away                  INTEGER NOT NULL DEFAULT 0,
   covering_clinician_id TEXT REFERENCES clinicians(id),
+  -- Repeat alerts: if an alert is still unseen, nudge again after each of these
+  -- delays (JSON array of up to two minute counts, measured from the first nudge).
+  repeat_alerts         INTEGER NOT NULL DEFAULT 0,
+  repeat_after_minutes  TEXT NOT NULL DEFAULT '[]',
   created_at            TEXT NOT NULL
 );
 
@@ -56,7 +60,7 @@ CREATE TABLE IF NOT EXISTS reports (
   file_hash               TEXT,
   status                  TEXT NOT NULL DEFAULT 'received'
                             CHECK (status IN ('received', 'read', 'checked', 'couldnt_read')),
-  extraction_source       TEXT CHECK (extraction_source IN ('ai', 'cache', 'fallback')),
+  extraction_source       TEXT CHECK (extraction_source IN ('ocr', 'cache', 'fallback')),
   extraction_model        TEXT,
   extraction_cost_usd     REAL,
   extraction_note         TEXT,
@@ -67,7 +71,7 @@ CREATE TABLE IF NOT EXISTS reports (
   created_at              TEXT NOT NULL
 );
 
--- Survives "Reset demo" so the same PDF is never sent to the AI twice.
+-- Survives "Reset demo" so the same PDF is never sent for OCR twice.
 CREATE TABLE IF NOT EXISTS extraction_cache (
   file_hash       TEXT PRIMARY KEY,
   model           TEXT NOT NULL,
@@ -164,8 +168,25 @@ CREATE TABLE IF NOT EXISTS notifications (
   status           TEXT NOT NULL CHECK (status IN ('sent', 'simulated', 'failed')),
   provider_id      TEXT,
   error            TEXT,
+  -- 0 for the first nudge, then 1 or 2 for a repeat.
+  repeat_number    INTEGER NOT NULL DEFAULT 0,
   created_at       TEXT NOT NULL
 );
+
+-- Repeats planned when a GP is first nudged about a report. Each is sent only
+-- if that report's alerts are still unseen when it falls due.
+CREATE TABLE IF NOT EXISTS repeat_reminders (
+  id            TEXT PRIMARY KEY,
+  report_id     TEXT NOT NULL REFERENCES reports(id),
+  clinician_id  TEXT NOT NULL REFERENCES clinicians(id),
+  alert_id      TEXT NOT NULL REFERENCES alerts(id),
+  repeat_number INTEGER NOT NULL,
+  due_at        TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'cancelled')),
+  sent_at       TEXT,
+  created_at    TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS repeat_reminders_due ON repeat_reminders (status, due_at);
 
 -- Presenter settings that survive "Reset demo", e.g. live_messages = 'on' | 'off'.
 CREATE TABLE IF NOT EXISTS app_settings (
@@ -188,6 +209,7 @@ CREATE TABLE IF NOT EXISTS audit_events (
 // Tables cleared by "Reset demo", in foreign-key-safe order.
 // extraction_cache and app_settings are deliberately absent.
 export const RESETTABLE_TABLES = [
+  "repeat_reminders",
   "notifications",
   "alerts",
   "checks",

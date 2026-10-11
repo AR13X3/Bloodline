@@ -7,6 +7,7 @@ import { audit } from "../db/audit";
 import { liveMessagesOn } from "../db/settings";
 import { emit } from "../events";
 import { emailConfigured, makeCall, sendEmail, sendSms, twilioConfigured, type SendResult } from "./providers";
+import { scheduleRepeats } from "./repeats";
 
 export type Channel = "app" | "email" | "sms" | "voice";
 
@@ -29,20 +30,21 @@ export function maskPhone(phone: string): string {
   return `${digits.slice(0, 3)} ••• ••• ${digits.slice(-3)}`;
 }
 
-export function messageText(count: number): { sms: string; subject: string; email: string; html: string; voice: string } {
-  const what = count === 1 ? "1 new result" : `${count} new results`;
-  const sms = `BloodLine: You have ${what} to review. Open the app.`;
+/** `repeat` is 0 for the first nudge, then 1 or 2 for a repeat about results still unseen. */
+export function messageText(count: number, repeat = 0): { sms: string; subject: string; email: string; html: string; voice: string } {
+  const what = repeat ? (count === 1 ? "1 result" : `${count} results`) : count === 1 ? "1 new result" : `${count} new results`;
+  const sms = repeat ? `BloodLine reminder: You still have ${what} to review. Open the app.` : `BloodLine: You have ${what} to review. Open the app.`;
   return {
     sms,
-    subject: `BloodLine: ${what} to review`,
+    subject: repeat ? `BloodLine reminder: ${what} still to review` : `BloodLine: ${what} to review`,
     email: `${sms}\n\nFor privacy, this message contains no patient details. Sign in to the BloodLine app to see the result.\n\nSynthetic demo - not for clinical use.`,
     html: `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;color:#0b1f3a">
   <div style="font-size:20px;font-weight:600;color:#0b1f3a">BloodLine</div>
-  <p style="font-size:16px;line-height:1.5;margin:24px 0">You have <strong>${what}</strong> to review.</p>
+  <p style="font-size:16px;line-height:1.5;margin:24px 0">You ${repeat ? "still " : ""}have <strong>${what}</strong> to review.</p>
   <p style="font-size:14px;line-height:1.5;color:#55606e">For privacy, this message contains no patient details. Open the BloodLine app to see the result.</p>
   <p style="font-size:12px;color:#8a94a3;margin-top:32px">Synthetic demo - not for clinical use.</p>
 </div>`,
-    voice: `This is BloodLine. You have ${what} to review. Please open the BloodLine app.`,
+    voice: `This is BloodLine. You ${repeat ? "still " : ""}have ${what} to review. Please open the BloodLine app.`,
   };
 }
 
@@ -58,7 +60,7 @@ interface ClinicianContact {
 
 export async function notifyRecipient(
   db: DatabaseSync,
-  input: { clinicianId: string; alertId: string; resultCount: number; sourceMessageId?: string },
+  input: { clinicianId: string; alertId: string; resultCount: number; sourceMessageId?: string; repeat?: number },
 ): Promise<NotificationOutcome[]> {
   const gp = db
     .prepare("SELECT id, name, email, mobile, notify_email, notify_sms, notify_voice FROM clinicians WHERE id = ?")
@@ -66,7 +68,8 @@ export async function notifyRecipient(
   if (!gp) return [];
 
   const live = liveMessagesOn(db);
-  const text = messageText(input.resultCount);
+  const repeat = input.repeat ?? 0;
+  const text = messageText(input.resultCount, repeat);
 
   const attempts: { channel: Channel; recipient: string | null; configured: boolean; send: () => Promise<SendResult> }[] = [];
   if (gp.notify_email && gp.email) {
@@ -95,16 +98,18 @@ export async function notifyRecipient(
   );
 
   const insert = db.prepare(
-    `INSERT INTO notifications (id, alert_id, channel, recipient_masked, status, provider_id, error, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO notifications (id, alert_id, channel, recipient_masked, status, provider_id, error, repeat_number, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const now = new Date().toISOString();
   const rows = [{ ...outcomes[0], providerId: null }, ...sent];
   rows.forEach((o, i) => {
-    insert.run(randomUUID(), input.alertId, o.channel, o.recipient, o.status, o.providerId, o.detail, now);
-    audit(db, { actor: "system", action: `notification.${o.status}`, entityType: "alert", entityId: input.alertId, detail: { channel: o.channel, detail: o.detail } }, now);
-    emit({ type: "notification", alertId: input.alertId, sourceMessageId: input.sourceMessageId ?? null, channel: o.channel, status: o.status, recipient: o.recipient, detail: o.detail });
+    insert.run(randomUUID(), input.alertId, o.channel, o.recipient, o.status, o.providerId, o.detail, repeat, now);
+    audit(db, { actor: "system", action: `notification.${o.status}`, entityType: "alert", entityId: input.alertId, detail: { channel: o.channel, detail: o.detail, ...(repeat ? { repeat } : {}) } }, now);
+    emit({ type: "notification", alertId: input.alertId, sourceMessageId: input.sourceMessageId ?? null, channel: o.channel, status: o.status, recipient: o.recipient, detail: o.detail, repeat });
     if (i > 0) outcomes.push({ channel: o.channel, status: o.status, recipient: o.recipient, detail: o.detail });
   });
+  // After the first nudge, plan this GP's repeats (if they've turned them on).
+  if (repeat === 0) scheduleRepeats(db, { clinicianId: input.clinicianId, alertId: input.alertId, from: new Date(now) });
   return outcomes;
 }

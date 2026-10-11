@@ -7,12 +7,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-urbanist);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-inter);
+  --font-heading: var(--font-urbanist);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-soft: var(--brand-soft);
+  --color-highlight: var(--highlight);
   --color-review: var(--review);
   --color-review-foreground: var(--review-foreground);
   --color-review-soft: var(--review-soft);
@@ -57,46 +58,50 @@
 }
 
 :root {
-  --background: oklch(0.985 0.004 247);
-  --foreground: oklch(0.24 0.05 258);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.05 258);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.05 258);
-  --primary: oklch(0.27 0.06 258);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 247);
-  --secondary-foreground: oklch(0.27 0.06 258);
-  --muted: oklch(0.965 0.008 247);
-  --muted-foreground: oklch(0.52 0.03 255);
-  --accent: oklch(0.955 0.03 190);
-  --accent-foreground: oklch(0.36 0.08 190);
-  --destructive: oklch(0.58 0.22 25);
-  --border: oklch(0.92 0.012 250);
-  --input: oklch(0.92 0.012 250);
-  --ring: oklch(0.62 0.12 185);
-  --brand: oklch(0.6 0.12 185);
-  --brand-foreground: oklch(0.99 0 0);
-  --brand-soft: oklch(0.955 0.035 185);
-  --review: oklch(0.76 0.16 65);
-  --review-foreground: oklch(0.45 0.12 55);
-  --review-soft: oklch(0.97 0.045 80);
-  --success: oklch(0.64 0.15 155);
-  --success-soft: oklch(0.96 0.04 155);
-  --chart-1: oklch(0.6 0.12 185);
-  --chart-2: oklch(0.27 0.06 258);
-  --chart-3: oklch(0.76 0.16 65);
-  --chart-4: oklch(0.64 0.15 155);
-  --chart-5: oklch(0.58 0.22 25);
-  --radius: 0.875rem;
-  --sidebar: oklch(0.985 0.004 247);
-  --sidebar-foreground: oklch(0.24 0.05 258);
-  --sidebar-primary: oklch(0.27 0.06 258);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.955 0.03 190);
-  --sidebar-accent-foreground: oklch(0.36 0.08 190);
-  --sidebar-border: oklch(0.92 0.012 250);
-  --sidebar-ring: oklch(0.62 0.12 185);
+  /* Same palette as the GP app: soft cool greys, one deep teal ink and a pale sky accent. */
+  --background: #f1f4f6;
+  --foreground: #123441;
+  --card: #ffffff;
+  --card-foreground: #123441;
+  --popover: #ffffff;
+  --popover-foreground: #123441;
+  --primary: #0f3b4b;
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef1;
+  --secondary-foreground: #0f3b4b;
+  --muted: #e8eef1;
+  --muted-foreground: #6d818b;
+  --accent: #d4e8ef;
+  --accent-foreground: #0f3b4b;
+  --destructive: #c24e46;
+  --border: #e2e9ed;
+  --input: #e2e9ed;
+  --ring: #8ec4d4;
+  --brand: #0f3b4b;
+  --brand-foreground: #ffffff;
+  --brand-soft: #d4e8ef;
+  /* Numbers and small icons that need a touch of colour. */
+  --highlight: #2e869e;
+  /* Amber means "needs review" and nothing else. */
+  --review: #e0a23f;
+  --review-foreground: #7d5414;
+  --review-soft: #fbf1df;
+  --success: #2c8a68;
+  --success-soft: #e2f2eb;
+  --chart-1: #2e869e;
+  --chart-2: #0f3b4b;
+  --chart-3: #e0a23f;
+  --chart-4: #2c8a68;
+  --chart-5: #c24e46;
+  --radius: 1rem;
+  --sidebar: #f1f4f6;
+  --sidebar-foreground: #123441;
+  --sidebar-primary: #0f3b4b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d4e8ef;
+  --sidebar-accent-foreground: #0f3b4b;
+  --sidebar-border: #e2e9ed;
+  --sidebar-ring: #8ec4d4;
 }
 
 .dark {
@@ -148,11 +153,7 @@
   }
 }
 
-/* Calm backdrop: a faint teal glow and dot grid behind the console. */
+/* The console sits on the plain grey page, like the GP app. */
 .console-backdrop {
-  background-image:
-    radial-gradient(60rem 30rem at 15% -10%, oklch(0.95 0.04 185 / 0.9), transparent 70%),
-    radial-gradient(50rem 26rem at 95% 0%, oklch(0.95 0.03 258 / 0.7), transparent 70%),
-    radial-gradient(circle at 1px 1px, oklch(0.24 0.05 258 / 0.06) 1px, transparent 0);
-  background-size: auto, auto, 22px 22px;
+  background-color: var(--background);
 }

@@ -59,6 +59,19 @@ export async function notifyNewResults(count: number, alertId: string): Promise<
   });
 }
 
+/** A repeat the GP asked for: these results are still unseen. */
+export async function notifyRepeat(count: number, alertId: string): Promise<void> {
+  if (!(await prepareNotifications())) return;
+  await scheduleNotificationAsync({
+    content: {
+      title: "BloodLine reminder",
+      body: count === 1 ? "You still have 1 result to review." : `You still have ${count} results to review.`,
+      data: { alertId },
+    },
+    trigger: Platform.OS === "android" ? { channelId: "alerts" } : null,
+  });
+}
+
 /** Calls back with the alert id when the GP taps one of our notifications. */
 export function onNotificationTap(callback: (alertId: string) => void): EventSubscription {
   return addNotificationResponseReceivedListener((response) => {

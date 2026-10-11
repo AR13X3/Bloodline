@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, FileSearch, Sparkles, UserCheck, UserX } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileSearch, ScanText, UserCheck, UserX } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,14 +21,14 @@ function outcomes(row: ReportView["results"][number]): string[] {
 }
 
 function ExtractionBadge({ report }: { report: ReportView }) {
-  const { source, model, costUsd, note } = report.extraction;
+  const { source, costUsd, note } = report.extraction;
   const text =
-    source === "ai"
-      ? `Read by ${model?.split("/").pop()?.replace(/-/g, " ") ?? "AI"} · $${(costUsd ?? 0).toFixed(4)}`
+    source === "ocr"
+      ? `Read by OCR · $${(costUsd ?? 0).toFixed(4)}`
       : source === "cache"
         ? "Already read · from cache"
         : source === "fallback"
-          ? "AI unavailable · simulator's values"
+          ? "OCR unavailable · simulator's values"
           : report.status === "couldnt_read"
             ? "Couldn't read this report"
             : "Reading…";
@@ -41,13 +41,13 @@ function ExtractionBadge({ report }: { report: ReportView }) {
         warn ? "bg-review-soft text-review-foreground ring-review/40" : "bg-brand-soft text-accent-foreground ring-brand/25",
       )}
     >
-      <Sparkles className="size-3.5" />
+      <ScanText className="size-3.5" />
       {text}
     </span>
   );
 }
 
-export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; latestReportId: string | null }) {
+export function OcrReadingCard({ run, latestReportId }: { run: LiveRun | null; latestReportId: string | null }) {
   const reportId = run?.reportId ?? latestReportId;
   const reading = Boolean(run?.steps.reading && !run.steps.read);
   const report = useQuery({
@@ -62,17 +62,17 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
   return (
     <Card className="relative overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
-        <SectionTitle icon={FileSearch} title="AI reading" />
+        <SectionTitle icon={FileSearch} title="OCR reading" />
         {data ? <ExtractionBadge report={data} /> : null}
       </CardHeader>
-      <CardContent>
+      <CardContent className="@container">
         {!reportId ? (
           <div className="grid h-80 place-items-center rounded-xl border border-dashed bg-muted/30 text-sm text-muted-foreground">
             Send a report to see BloodLine read it here.
           </div>
         ) : (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
-            <div className="relative h-[440px] overflow-hidden rounded-xl bg-muted ring-1 ring-border">
+          <div className="grid gap-5 @min-[45rem]:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+            <div className="relative h-64 overflow-hidden rounded-xl bg-muted ring-1 ring-border @min-[45rem]:h-[440px]">
               <iframe key={reportId} title="Lab report" src={`/api/reports/${reportId}/file#toolbar=0&navpanes=0&view=FitH`} className="size-full" />
               <AnimatePresence>
                 {reading ? (
@@ -85,7 +85,7 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
                     )}
                     <div className="absolute inset-x-0 bottom-4 flex justify-center">
                       <span className="inline-flex items-center gap-2 rounded-full bg-card/95 px-3 py-1.5 text-xs font-medium shadow-md ring-1 ring-brand/30">
-                        <Sparkles className="size-3.5 text-brand" /> Reading the report…
+                        <ScanText className="size-3.5 text-brand" /> Reading the report…
                       </span>
                     </div>
                   </motion.div>
@@ -112,9 +112,9 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
                 ) : null}
               </AnimatePresence>
 
-              <div className="overflow-hidden rounded-xl ring-1 ring-border">
+              <div className="overflow-x-auto rounded-xl ring-1 ring-border">
                 <table className="w-full text-sm">
-                  <thead className="bg-muted/60 text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <thead className="bg-secondary/60 text-left text-xs text-muted-foreground">
                     <tr>
                       <th className="px-3 py-2 font-medium">Test</th>
                       <th className="px-3 py-2 font-medium">Result</th>
@@ -175,7 +175,7 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
               </div>
 
               {ready && data!.results.some((r) => r.labComment) ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(stagger(3))} className="rounded-xl border-l-4 border-brand bg-brand-soft/50 px-3 py-2 text-xs">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(stagger(3))} className="rounded-2xl bg-brand-soft/70 px-4 py-3 text-xs">
                   <span className="font-semibold">Lab comment: </span>
                   {data!.results.find((r) => r.labComment)?.labComment}
                 </motion.div>

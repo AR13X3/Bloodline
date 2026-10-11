@@ -6,7 +6,7 @@ import { useLiveRun } from "@/hooks/use-live-run";
 import { api } from "@/lib/api";
 import { rise, stagger } from "@/lib/motion";
 import { ActivityCard } from "./activity";
-import { AiReadingCard } from "./ai-reading";
+import { OcrReadingCard } from "./ocr-reading";
 import { DeliveryCard, StatsCard } from "./delivery-card";
 import { ConsoleHeader } from "./header";
 import { LogsCard } from "./logs";
@@ -20,7 +20,7 @@ export function Console() {
   return (
     <div className="console-backdrop min-h-screen">
       <ConsoleHeader feed={feed.data} connected={connected} />
-      <main className="mx-auto grid max-w-[1680px] gap-5 px-6 py-6 xl:grid-cols-12">
+      <main className="mx-auto grid max-w-[1680px] grid-cols-1 gap-5 px-4 py-6 sm:px-6 xl:grid-cols-12">
         <motion.div {...rise()} className="xl:col-span-3">
           <UploadCard />
         </motion.div>
@@ -29,7 +29,7 @@ export function Console() {
             <PipelineCard run={run} connected={connected} />
           </motion.div>
           <motion.div {...rise(stagger(1))}>
-            <AiReadingCard run={run} latestReportId={feed.data?.reports[0]?.id ?? null} />
+            <OcrReadingCard run={run} latestReportId={feed.data?.reports[0]?.id ?? null} />
           </motion.div>
         </div>
         <div className="flex flex-col gap-5 xl:col-span-3">
@@ -47,7 +47,7 @@ export function Console() {
           <ActivityCard feed={feed.data} />
         </motion.div>
       </main>
-      <footer className="mx-auto max-w-[1680px] px-6 pb-8 text-xs text-muted-foreground">
+      <footer className="mx-auto max-w-[1680px] px-4 pb-8 text-xs text-muted-foreground sm:px-6">
         BloodLine is a safety net, not a replacement for reviewing results as usual. It doesn&apos;t diagnose or decide urgency. Labs still phone through
         critical results. All data shown is synthetic.
       </footer>

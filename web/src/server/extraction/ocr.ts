@@ -1,4 +1,4 @@
-// Asks the AI to transcribe a report PDF into fields. Transcription only:
+// OCR: transcribes a report PDF into fields. Transcription only:
 // it never decides what is abnormal. All checks happen in deterministic code.
 import { z } from "zod";
 import type { ExtractedResult } from "../checks/types";
@@ -42,7 +42,7 @@ const JSON_SCHEMA = {
   },
 } as const;
 
-const AiOutput = z.object({
+const OcrOutput = z.object({
   results: z
     .array(
       z.object({
@@ -59,7 +59,7 @@ const AiOutput = z.object({
   patientName: z.string().nullable(),
 });
 
-export interface AiExtraction {
+export interface OcrExtraction {
   results: ExtractedResult[];
   patientName: string | null;
   model: string;
@@ -68,11 +68,11 @@ export interface AiExtraction {
   costUsd: number | null;
 }
 
-export function aiConfigured(): boolean {
+export function ocrConfigured(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY?.trim());
 }
 
-export async function extractWithAi(pdf: Uint8Array, fileName: string): Promise<AiExtraction> {
+export async function extractWithOcr(pdf: Uint8Array, fileName: string): Promise<OcrExtraction> {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is not set");
   const model = process.env.OPENROUTER_MODEL?.trim() || "anthropic/claude-haiku-5.5";
@@ -117,20 +117,20 @@ export async function extractWithAi(pdf: Uint8Array, fileName: string): Promise<
       }
     | null;
   if (!response.ok || !body) {
-    throw new Error(`OpenRouter HTTP ${response.status}: ${body?.error?.message ?? "no response body"}`);
+    throw new Error(`OCR request failed (HTTP ${response.status}): ${body?.error?.message ?? "no response body"}`);
   }
 
   const content = body.choices?.[0]?.message?.content;
-  if (!content) throw new Error(`AI returned no content (finish reason: ${body.choices?.[0]?.finish_reason ?? "unknown"})`);
+  if (!content) throw new Error(`OCR returned no content (finish reason: ${body.choices?.[0]?.finish_reason ?? "unknown"})`);
 
   let json: unknown;
   try {
     json = JSON.parse(content);
   } catch {
-    throw new Error("AI output was not valid JSON");
+    throw new Error("OCR output was not valid JSON");
   }
-  const parsed = AiOutput.safeParse(json);
-  if (!parsed.success) throw new Error(`AI output didn't match the schema: ${parsed.error.issues[0]?.message}`);
+  const parsed = OcrOutput.safeParse(json);
+  if (!parsed.success) throw new Error(`OCR output didn't match the schema: ${parsed.error.issues[0]?.message}`);
 
   const { results, reportComment, patientName } = parsed.data;
   return {

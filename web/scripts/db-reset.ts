@@ -1,5 +1,5 @@
 // Recreates the demo database from synthetic seed data.
-// Keeps the AI extraction cache. Usage: npm run db:reset
+// Keeps the OCR cache. Usage: npm run db:reset
 import { existsSync } from "node:fs";
 import { getDb, resetDemo } from "../src/server/db";
 

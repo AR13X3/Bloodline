@@ -5,6 +5,7 @@ import { z } from "zod";
 import { audit } from "./db/audit";
 import { setSetting } from "./db/settings";
 import { emit } from "./events";
+import { cancelPendingRepeats, MAX_REPEAT_MINUTES, MAX_REPEATS, normaliseRepeatMinutes } from "./notify/repeats";
 
 export class CommandError extends Error {
   constructor(message: string, readonly status: 400 | 403 | 404 | 409 = 400) {
@@ -67,14 +68,25 @@ export function createRule(db: DatabaseSync, input: z.infer<typeof CreateRuleInp
   return { id };
 }
 
+const Months = z.union([z.literal(1), z.literal(3), z.literal(6)]);
+
 export const UpdateRuleInput = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("renew"), clinicianId: z.string().min(1), months: z.union([z.literal(1), z.literal(3), z.literal(6)]) }),
+  z.object({ action: z.literal("renew"), clinicianId: z.string().min(1), months: Months }),
   z.object({ action: z.literal("end"), clinicianId: z.string().min(1) }),
+  // The test stays the same; without `months` the end date is kept.
+  z.object({
+    action: z.literal("edit"),
+    clinicianId: z.string().min(1),
+    direction: z.enum(["above", "below"]),
+    threshold: z.number().finite().nonnegative(),
+    note: z.string().trim().max(200).nullish(),
+    months: Months.optional(),
+  }),
 ]);
 
 export function updateRule(db: DatabaseSync, ruleId: string, input: z.infer<typeof UpdateRuleInput>): void {
-  const rule = db.prepare("SELECT clinician_id, patient_id, ends_at, ended_at, version FROM rules WHERE id = ?").get(ruleId) as
-    | { clinician_id: string; patient_id: string; ends_at: string; ended_at: string | null; version: number }
+  const rule = db.prepare("SELECT clinician_id, patient_id, direction, threshold, note, ends_at, ended_at, version FROM rules WHERE id = ?").get(ruleId) as
+    | { clinician_id: string; patient_id: string; direction: string; threshold: number; note: string | null; ends_at: string; ended_at: string | null; version: number }
     | undefined;
   if (!rule) throw new CommandError("Rule not found", 404);
   if (rule.clinician_id !== input.clinicianId) throw new CommandError("You can only change your own rules", 403);
@@ -85,6 +97,25 @@ export function updateRule(db: DatabaseSync, ruleId: string, input: z.infer<type
     const endsAt = new Date(now.getTime() + input.months * MONTH_MS).toISOString();
     db.prepare("UPDATE rules SET ends_at = ?, version = version + 1, updated_at = ? WHERE id = ?").run(endsAt, now.toISOString(), ruleId);
     audit(db, { actor: input.clinicianId, action: "rule.renewed", entityType: "rule", entityId: ruleId, detail: { from: rule.ends_at, to: endsAt, version: rule.version + 1 } });
+  } else if (input.action === "edit") {
+    const endsAt = input.months ? new Date(now.getTime() + input.months * MONTH_MS).toISOString() : rule.ends_at;
+    const note = input.note || null;
+    db.prepare("UPDATE rules SET direction = ?, threshold = ?, note = ?, ends_at = ?, version = version + 1, updated_at = ? WHERE id = ?").run(
+      input.direction, input.threshold, note, endsAt, now.toISOString(), ruleId,
+    );
+    audit(db, {
+      actor: input.clinicianId,
+      action: "rule.edited",
+      entityType: "rule",
+      entityId: ruleId,
+      // Notes stay out of the audit log, like rule creation.
+      detail: {
+        from: { direction: rule.direction, threshold: rule.threshold, endsAt: rule.ends_at },
+        to: { direction: input.direction, threshold: input.threshold, endsAt },
+        noteChanged: (rule.note ?? null) !== note,
+        version: rule.version + 1,
+      },
+    });
   } else {
     db.prepare("UPDATE rules SET ended_at = ?, version = version + 1, updated_at = ? WHERE id = ?").run(now.toISOString(), now.toISOString(), ruleId);
     audit(db, { actor: input.clinicianId, action: "rule.ended", entityType: "rule", entityId: ruleId, detail: { version: rule.version + 1 } });
@@ -105,6 +136,8 @@ export const UpdateSettingsInput = z
     notifyVoice: z.boolean(),
     away: z.boolean(),
     coveringClinicianId: z.string().min(1).nullable(),
+    repeatAlerts: z.boolean(),
+    repeatAfterMinutes: z.array(z.number().int().min(1).max(MAX_REPEAT_MINUTES)).max(MAX_REPEATS),
   })
   .partial();
 
@@ -123,6 +156,8 @@ export function updateClinicianSettings(db: DatabaseSync, clinicianId: string, i
     notifyVoice: "notify_voice",
     away: "away",
     coveringClinicianId: "covering_clinician_id",
+    repeatAlerts: "repeat_alerts",
+    repeatAfterMinutes: "repeat_after_minutes",
   };
   const sets: string[] = [];
   const values: (string | number | null)[] = [];
@@ -130,10 +165,12 @@ export function updateClinicianSettings(db: DatabaseSync, clinicianId: string, i
     const value = input[key];
     if (value === undefined) continue;
     sets.push(`${column} = ?`);
-    values.push(typeof value === "boolean" ? (value ? 1 : 0) : value);
+    values.push(Array.isArray(value) ? JSON.stringify(normaliseRepeatMinutes(value)) : typeof value === "boolean" ? (value ? 1 : 0) : value);
   }
   if (sets.length === 0) return;
   db.prepare(`UPDATE clinicians SET ${sets.join(", ")} WHERE id = ?`).run(...values, clinicianId);
+  // Switching repeats off also drops any that haven't gone out yet.
+  if (input.repeatAlerts === false) cancelPendingRepeats(db, clinicianId);
 
   // Never put contact details in the audit log.
   const changed = Object.keys(input).map((k) => (k === "email" || k === "mobile" ? `${k} (changed)` : `${k}=${String(input[k as keyof typeof input])}`));

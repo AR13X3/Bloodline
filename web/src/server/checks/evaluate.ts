@@ -1,5 +1,5 @@
 // The three checks: the lab's flag, the range printed on the report, and the
-// GP's own rules. Deterministic; the AI plays no part here.
+// GP's own rules. Deterministic; OCR plays no part here.
 import { positionInRange } from "./range";
 import type { ActiveRule, CheckRecord, Evaluation, ValidatedResult } from "./types";
 

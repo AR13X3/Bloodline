@@ -3,6 +3,8 @@ import type { AlertDetail, AlertListItem, ClinicianSettings, ClinicianSummary, P
 
 export class ApiError extends Error {}
 
+export type SettingsPatch = Partial<Pick<ClinicianSettings, "notifyEmail" | "notifySms" | "notifyVoice" | "away" | "coveringClinicianId" | "repeatAlerts" | "repeatAfterMinutes">>;
+
 async function request<T>(base: string, path: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
@@ -32,10 +34,16 @@ export function createApi(base: string) {
     patient: (id: string) => request<PatientDetail>(base, `/api/patients/${id}`),
     createRule: (input: { clinicianId: string; patientId: string; testTypeId: string; direction: "above" | "below"; threshold: number; months: 1 | 3 | 6; note?: string | null }) =>
       request<{ id: string }>(base, "/api/rules", json("POST", input)),
-    updateRule: (id: string, input: { action: "renew"; clinicianId: string; months: 1 | 3 | 6 } | { action: "end"; clinicianId: string }) =>
+    updateRule: (
+      id: string,
+      input:
+        | { action: "renew"; clinicianId: string; months: 1 | 3 | 6 }
+        | { action: "end"; clinicianId: string }
+        | { action: "edit"; clinicianId: string; direction: "above" | "below"; threshold: number; note?: string | null; months?: 1 | 3 | 6 },
+    ) =>
       request<{ ok: true }>(base, `/api/rules/${id}`, json("PATCH", input)),
     settings: (clinicianId: string) => request<ClinicianSettings>(base, `/api/clinicians/${clinicianId}/settings`),
-    updateSettings: (clinicianId: string, patch: Partial<Pick<ClinicianSettings, "notifyEmail" | "notifySms" | "notifyVoice" | "away" | "coveringClinicianId">>) =>
+    updateSettings: (clinicianId: string, patch: SettingsPatch) =>
       request<ClinicianSettings>(base, `/api/clinicians/${clinicianId}/settings`, json("PUT", patch)),
     reportUrl: (fileUrl: string) => `${base}${fileUrl}`,
   };
