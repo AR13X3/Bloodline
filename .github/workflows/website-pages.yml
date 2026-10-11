@@ -1,4 +1,5 @@
-# Builds the marketing site in Website/ and publishes it to GitHub Pages.
+# Builds the marketing site in Website/ and publishes it to GitHub Pages, with the
+# PRD, pitch and system-design pages from docs/ alongside it under /docs/.
 # The site is served at https://<owner>.github.io/<repo>/, so the build gets that subpath as its base.
 name: Website to GitHub Pages
 
@@ -7,6 +8,7 @@ on:
     branches: [main]
     paths:
       - "Website/**"
+      - "docs/*.html"
       - ".github/workflows/website-pages.yml"
   workflow_dispatch:
 
@@ -36,6 +38,8 @@ jobs:
       - run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+      - name: Add the docs pages
+        run: mkdir -p dist/docs && cp ../docs/*.html dist/docs/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

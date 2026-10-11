@@ -14,7 +14,7 @@ npm run preview    # serves dist/ on http://localhost:5180
 
 ## Deploy to GitHub Pages
 
-`.github/workflows/website-pages.yml` builds this folder and publishes it on every push to `main` that touches `Website/`. It can also be run by hand from the Actions tab. The live site is at https://ar13x3.github.io/Bloodline/.
+`.github/workflows/website-pages.yml` builds this folder and publishes it on every push to `main` that touches `Website/` or the docs pages. It can also be run by hand from the Actions tab. The live site is at https://ar13x3.github.io/Bloodline/, and the workflow also copies `docs/*.html` to https://ar13x3.github.io/Bloodline/docs/ (PRD, pitch numbers, system design).
 
 Project sites live under `/<repo>/`, so the workflow builds with `BASE_PATH=/Bloodline/`. Page links in the HTML use `%BASE_URL%` for that reason: Vite swaps in the right prefix, and local builds still use `/`. GitHub Pages ignores `public/_headers`.
 
