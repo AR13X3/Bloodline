@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { ArrowLeft, CheckCircle2, CircleHelp, FileText, Flag, Info, ListChecks, MoveVertical, UserX } from "lucide-react-native";
+import { ArrowLeft, CheckCircle2, CircleHelp, FileText, Flag, ListChecks, MoveVertical, UserX } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
@@ -180,13 +180,6 @@ export default function AlertScreen() {
           {a.report.fileUrl ? (
             <Button label="View original report" variant="secondary" icon={FileText} onPress={() => WebBrowser.openBrowserAsync(api.reportUrl(a.report.fileUrl!))} />
           ) : null}
-
-          <View style={styles.footnote}>
-            <Info size={14} color={colors.textFaint} />
-            <T size={12} color={colors.textFaint} style={{ flex: 1, lineHeight: 17 }}>
-              BloodLine is a safety net. It doesn&apos;t diagnose. Review this result and record decisions in your practice software as usual.
-            </T>
-          </View>
         </View>
       </ScrollView>
 
@@ -236,7 +229,6 @@ const styles = StyleSheet.create({
   whyIcon: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   comment: { backgroundColor: colors.tealSoft, borderRadius: radius.md, padding: 14, borderLeftWidth: 4, borderLeftColor: colors.teal },
   warn: { flexDirection: "row", gap: 10, alignItems: "center", backgroundColor: colors.amberSoft, borderRadius: radius.md, padding: 12 },
-  footnote: { flexDirection: "row", gap: 8, alignItems: "flex-start", paddingHorizontal: 4 },
   bottom: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: "rgba(245,247,251,0.96)", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   seen: { height: 52, borderRadius: radius.md, flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center", backgroundColor: colors.greenSoft },
 });

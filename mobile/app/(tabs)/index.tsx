@@ -175,11 +175,6 @@ export default function AlertsScreen() {
                   <T weight="bold" size={20} color={colors.white}>
                     {unseen ? `${unseen} result${unseen === 1 ? "" : "s"} to review` : "Nothing waiting"}
                   </T>
-                  {unseen ? null : (
-                    <T size={13} color="rgba(255,255,255,0.8)" style={{ marginTop: 2 }}>
-                      This is not an all-clear. Keep reviewing results as usual.
-                    </T>
-                  )}
                 </View>
               </LinearGradient>
             </Animated.View>
@@ -204,9 +199,6 @@ export default function AlertsScreen() {
               <ShieldCheck size={36} color={colors.teal} />
               <T weight="semibold" size={16}>
                 No alerts yet
-              </T>
-              <T size={13} color={colors.textMuted} style={{ textAlign: "center" }}>
-                When a result matches the lab&apos;s flag, its printed range or one of your rules, it appears here.
               </T>
             </View>
           )
