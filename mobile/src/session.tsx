@@ -5,16 +5,19 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 const KEYS = { server: "bloodline.serverUrl", clinician: "bloodline.clinicianId" };
 
-/** Same machine as the Expo dev server, port 3000, unless the presenter sets a tunnel URL. */
+/** Same machine as the Expo dev server, port 3100, unless the presenter sets a tunnel URL. */
 function defaultServerUrl(): string {
   const host = Constants.expoConfig?.hostUri?.split(":")[0];
-  return host ? `http://${host}:3000` : "http://10.0.2.2:3000";
+  return host ? `http://${host}:3100` : "http://10.0.2.2:3100";
 }
 
+/** Adds a scheme if missing: plain http for local/LAN addresses, https for tunnel hostnames. */
 export function normaliseServerUrl(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
   if (!trimmed) return "";
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const local = /^(localhost|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|100\.|\d{1,3}(\.\d{1,3}){3})/i.test(trimmed);
+  return `${local ? "http" : "https"}://${trimmed}`;
 }
 
 interface Session {

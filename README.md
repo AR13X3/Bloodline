@@ -72,7 +72,7 @@ Open three terminals.
    npm run dev
    ```
 
-   Open http://localhost:3000. For the most reliable stage run, use `npm run demo` (production build) instead.
+   Open http://localhost:3100. For the most reliable stage run, use `npm run demo` (production build) instead.
 
 2. **Tunnel**
 
