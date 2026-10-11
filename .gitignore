@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# secrets and local env files (templates are allowed)
+.env*
+!.env.example
+
+# local demo data (synthetic database and report PDFs)
+web/data/
+
+# build output
+.next/
+.expo/
+dist/
+*.tsbuildinfo
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
