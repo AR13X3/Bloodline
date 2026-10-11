@@ -38,9 +38,6 @@ export default function SignIn() {
             <T weight="bold" size={34} color={colors.white}>
               BloodLine
             </T>
-            <T size={16} color="rgba(255,255,255,0.82)" style={{ marginTop: 6, lineHeight: 23 }}>
-              The lab makes sure the result arrives.{"\n"}BloodLine makes sure you know.
-            </T>
           </Animated.View>
         </LinearGradient>
 
@@ -53,9 +50,6 @@ export default function SignIn() {
                   Sign in as
                 </T>
               </View>
-              <T size={13} color={colors.textMuted}>
-                Demo sign-in: choose a synthetic GP. A real build would use secure sign-in with MFA.
-              </T>
 
               {clinicians.isLoading ? (
                 <ActivityIndicator color={colors.teal} style={{ paddingVertical: 20 }} />
@@ -140,9 +134,7 @@ export default function SignIn() {
             </Card>
           </Animated.View>
 
-          <T size={12} color={colors.textFaint} style={{ textAlign: "center", marginTop: 4, marginBottom: insets.bottom + 16 }}>
-            Synthetic data · not for clinical use
-          </T>
+          <View style={{ height: insets.bottom + 16 }} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

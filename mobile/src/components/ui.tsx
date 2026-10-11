@@ -115,16 +115,6 @@ export function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function SyntheticBadge() {
-  return (
-    <View style={styles.synthetic}>
-      <T weight="medium" size={11} color={colors.amberText}>
-        Synthetic data · not for clinical use
-      </T>
-    </View>
-  );
-}
-
 /** Where the value sits relative to the range printed on the report. */
 export function RangeBar({ value, low, high, position }: { value: number; low: number | null; high: number | null; position: "below" | "inside" | "above" | null }) {
   const lo = low ?? (high !== null ? Math.min(value, high) * 0.5 : value * 0.5);
@@ -194,5 +184,4 @@ const styles = StyleSheet.create({
   segmented: { flexDirection: "row", backgroundColor: colors.navySoft, borderRadius: radius.md, padding: 4 },
   segment: { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: radius.sm },
   segmentActive: { backgroundColor: colors.white, ...shadow, elevation: 1 },
-  synthetic: { alignSelf: "flex-start", backgroundColor: colors.amberSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: "#F6DDAF", borderStyle: "dashed" },
 });

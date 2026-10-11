@@ -60,7 +60,7 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
   return (
     <Card className="relative overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
-        <SectionTitle icon={FileSearch} title="AI reading" hint="The AI only copies what's printed. BloodLine's code does every check." />
+        <SectionTitle icon={FileSearch} title="AI reading" />
         {data ? <ExtractionBadge report={data} /> : null}
       </CardHeader>
       <CardContent>
@@ -69,7 +69,7 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
             Send a report to see BloodLine read it here.
           </div>
         ) : (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
             <div className="relative h-[440px] overflow-hidden rounded-xl bg-muted ring-1 ring-border">
               <iframe key={reportId} title="Lab report" src={`/api/reports/${reportId}/file#toolbar=0&navpanes=0&view=FitH`} className="size-full" />
               <AnimatePresence>
@@ -116,8 +116,8 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
                     <tr>
                       <th className="px-3 py-2 font-medium">Test</th>
                       <th className="px-3 py-2 font-medium">Result</th>
-                      <th className="px-3 py-2 font-medium">Printed range</th>
-                      <th className="px-3 py-2 font-medium">Lab flag</th>
+                      <th className="px-3 py-2 font-medium">Range</th>
+                      <th className="px-3 py-2 font-medium">Flag</th>
                       <th className="px-3 py-2 font-medium">BloodLine</th>
                     </tr>
                   </thead>
@@ -149,7 +149,7 @@ export function AiReadingCard({ run, latestReportId }: { run: LiveRun | null; la
                               <td className="px-3 py-2.5 font-mono text-xs whitespace-nowrap tabular-nums text-muted-foreground">{row.range ?? "—"}</td>
                               <td className="px-3 py-2.5">{row.labFlag ? <span className="font-mono font-semibold text-destructive">{row.labFlag}</span> : <span className="text-muted-foreground">—</span>}</td>
                               <td className="px-3 py-2.5">
-                                <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.12 * i + 0.25, type: "spring", stiffness: 380, damping: 18 }} className="flex flex-wrap gap-1">
+                                <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.12 * i + 0.25, type: "spring", stiffness: 380, damping: 18 }} className="flex flex-col items-start gap-1">
                                   {reasons.length ? (
                                     reasons.map((r) => <ReasonChip key={r} reason={r} />)
                                   ) : (

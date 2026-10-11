@@ -177,7 +177,7 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
   return (
     <Card className="relative overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
-        <SectionTitle icon={Route} title="Live pipeline" hint="Every step, as it happens" />
+        <SectionTitle icon={Route} title="Live pipeline" />
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {run ? (
             <motion.span key={run.sourceMessageId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-mono">

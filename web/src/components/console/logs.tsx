@@ -16,7 +16,7 @@ export function LogsCard({ feed }: { feed: DashboardFeed | undefined }) {
   return (
     <Card>
       <CardHeader>
-        <SectionTitle icon={ScrollText} title="Records" hint="Everything BloodLine did, for the practice and for audit" />
+        <SectionTitle icon={ScrollText} title="Records" />
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="alerts">

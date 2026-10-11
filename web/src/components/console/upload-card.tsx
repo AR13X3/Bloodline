@@ -85,7 +85,7 @@ export function UploadCard() {
   return (
     <Card className="relative overflow-hidden">
       <CardHeader>
-        <SectionTitle icon={FileUp} title="Send a lab report" hint="As if it just arrived from the lab" />
+        <SectionTitle icon={FileUp} title="Send a lab report" />
       </CardHeader>
       <CardContent className="space-y-4">
         <motion.label

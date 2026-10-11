@@ -72,10 +72,7 @@ export function ConsoleHeader({ feed, connected }: { feed: DashboardFeed | undef
       <div className="mx-auto flex max-w-[1680px] items-center gap-4 px-6 py-3">
         <div className="flex items-center gap-2.5">
           <Logo className="size-9" />
-          <div className="leading-tight">
-            <div className="text-lg font-semibold tracking-tight">BloodLine</div>
-            <div className="text-xs text-muted-foreground">Practice console · simulated practice system</div>
-          </div>
+          <div className="text-lg font-semibold tracking-tight">BloodLine</div>
         </div>
         <span className="ml-2 hidden rounded-full border border-dashed border-review/60 bg-review-soft px-2.5 py-1 text-[11px] font-medium text-review-foreground lg:inline">
           Synthetic data · not for clinical use

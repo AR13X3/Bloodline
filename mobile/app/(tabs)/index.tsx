@@ -9,7 +9,7 @@ import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeabl
 import Animated, { FadeInDown, FadeOutUp, LinearTransition, useAnimatedStyle, withSequence, withSpring, withTiming, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
-import { PressableScale, ReasonChip, SyntheticBadge, T, reasonAccent, timeAgo } from "@/components/ui";
+import { PressableScale, ReasonChip, T, reasonAccent, timeAgo } from "@/components/ui";
 import { useAlerts, useFreshAlerts } from "@/hooks";
 import { useSession } from "@/session";
 import { colors, radius, shadow } from "@/theme";
@@ -88,14 +88,14 @@ function AlertCard({ alert, index, isFresh, onSeen }: { alert: AlertListItem; in
   );
 }
 
-function NewResultBanner({ count }: { count: number }) {
+function NewResultBanner({ count, top }: { count: number; top: number }) {
   const y = useSharedValue(-80);
   useEffect(() => {
     y.value = withSequence(withSpring(0, { damping: 14 }), withTiming(0, { duration: 2600 }), withTiming(-90, { duration: 300 }));
   }, [count, y]);
   const style = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
   return (
-    <Animated.View style={[styles.banner, style]} pointerEvents="none">
+    <Animated.View style={[styles.banner, { top }, style]} pointerEvents="none">
       <BellRing size={18} color={colors.navy} />
       <T weight="semibold" size={14} color={colors.navy}>
         {count === 1 ? "New result to review" : `${count} new results to review`}
@@ -168,7 +168,6 @@ export default function AlertsScreen() {
                 {me ?? "Your alerts"}
               </T>
             </View>
-            <SyntheticBadge />
             <Animated.View entering={FadeInDown.springify().damping(16)}>
               <LinearGradient colors={unseen ? ["#13294B", "#1C4E6B"] : ["#0E7F79", "#12A19A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.summary}>
                 <View style={styles.summaryIcon}>{unseen ? <BellRing size={22} color={colors.white} /> : <ShieldCheck size={22} color={colors.white} />}</View>
@@ -176,9 +175,11 @@ export default function AlertsScreen() {
                   <T weight="bold" size={20} color={colors.white}>
                     {unseen ? `${unseen} result${unseen === 1 ? "" : "s"} to review` : "Nothing waiting"}
                   </T>
-                  <T size={13} color="rgba(255,255,255,0.8)" style={{ marginTop: 2 }}>
-                    {unseen ? "Swipe right on a card to mark it as seen." : "This is not an all-clear. Keep reviewing results as usual."}
-                  </T>
+                  {unseen ? null : (
+                    <T size={13} color="rgba(255,255,255,0.8)" style={{ marginTop: 2 }}>
+                      This is not an all-clear. Keep reviewing results as usual.
+                    </T>
+                  )}
                 </View>
               </LinearGradient>
             </Animated.View>
@@ -211,7 +212,7 @@ export default function AlertsScreen() {
           )
         }
       />
-      {fresh ? <NewResultBanner key={fresh.at} count={fresh.ids.length} /> : null}
+      {fresh ? <NewResultBanner key={fresh.at} count={fresh.ids.length} top={insets.top + 8} /> : null}
     </View>
   );
 }
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   summaryIcon: { width: 46, height: 46, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" },
   sectionHeader: { textTransform: "uppercase", letterSpacing: 0.6, marginTop: 8, marginBottom: 2 },
   swipeAction: { width: 96, borderRadius: radius.lg, backgroundColor: colors.green, alignItems: "center", justifyContent: "center", gap: 4, marginRight: 8 },
-  banner: { position: "absolute", top: 54, alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.amber, paddingHorizontal: 18, paddingVertical: 12, borderRadius: 999, ...shadow },
+  banner: { position: "absolute", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.amber, paddingHorizontal: 18, paddingVertical: 12, borderRadius: 999, ...shadow },
   error: { backgroundColor: colors.amberSoft, borderRadius: radius.md, padding: 10 },
   empty: { alignItems: "center", gap: 8, padding: 32 },
 });

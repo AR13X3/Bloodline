@@ -6,7 +6,7 @@ import { Alert, ScrollView, StyleSheet, Switch, TextInput, View } from "react-na
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
-import { Button, Card, PressableScale, SectionLabel, SyntheticBadge, T, maskEmail, maskPhone } from "@/components/ui";
+import { Button, Card, PressableScale, SectionLabel, T, maskEmail, maskPhone } from "@/components/ui";
 import { useSession } from "@/session";
 import { colors, fonts, radius } from "@/theme";
 import type { ClinicianSettings } from "@/types";
@@ -64,10 +64,6 @@ export default function SettingsScreen() {
         <T weight="bold" size={28}>
           Settings
         </T>
-        <T size={14} color={colors.textMuted}>
-          {s?.name ?? "…"}
-        </T>
-        <SyntheticBadge />
       </View>
 
       <Animated.View entering={FadeInDown.springify().damping(16)}>
@@ -152,9 +148,6 @@ export default function SettingsScreen() {
           router.replace("/sign-in");
         }}
       />
-      <T size={12} color={colors.textFaint} style={{ textAlign: "center" }}>
-        BloodLine demo · synthetic data · not for clinical use
-      </T>
     </ScrollView>
   );
 }

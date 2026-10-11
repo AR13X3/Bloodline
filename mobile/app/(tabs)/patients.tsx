@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
-import { PressableScale, SyntheticBadge, T, formatDate } from "@/components/ui";
+import { PressableScale, T, formatDate } from "@/components/ui";
 import { useSession } from "@/session";
 import { colors, radius, shadow } from "@/theme";
 
@@ -31,10 +31,6 @@ export default function PatientsScreen() {
           <T weight="bold" size={28}>
             Patients
           </T>
-          <T size={14} color={colors.textMuted}>
-            Set your own alert rules for a patient: for example, potassium above a value you choose.
-          </T>
-          <SyntheticBadge />
         </View>
       }
       renderItem={({ item, index }) => (

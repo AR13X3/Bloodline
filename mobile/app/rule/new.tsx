@@ -87,9 +87,6 @@ export default function NewRuleScreen() {
           <T weight="bold" size={26}>
             {reviewing ? "Check your rule" : "New rule"}
           </T>
-          <T size={14} color={colors.textMuted}>
-            For {patient.data.name}. You decide the value; BloodLine only compares results with it.
-          </T>
         </View>
 
         {reviewing && test && threshold !== null ? (

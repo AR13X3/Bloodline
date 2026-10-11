@@ -75,16 +75,13 @@ export function StatusPill({ status }: { status: string }) {
   );
 }
 
-export function SectionTitle({ icon: Icon, title, hint }: { icon: LucideIcon; title: string; hint?: string }) {
+export function SectionTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return (
     <div className="flex items-center gap-2">
       <span className="grid size-7 place-items-center rounded-lg bg-brand-soft text-accent-foreground">
         <Icon className="size-4" />
       </span>
-      <div className="leading-tight">
-        <div className="text-sm font-semibold tracking-tight">{title}</div>
-        {hint ? <div className="text-xs text-muted-foreground">{hint}</div> : null}
-      </div>
+      <div className="text-sm font-semibold tracking-tight">{title}</div>
     </div>
   );
 }

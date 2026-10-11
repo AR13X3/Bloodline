@@ -36,7 +36,7 @@ export function ActivityCard({ feed }: { feed: DashboardFeed | undefined }) {
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <SectionTitle icon={Activity} title="Live activity" hint="Alerts and messages, newest first" />
+        <SectionTitle icon={Activity} title="Live activity" />
       </CardHeader>
       <CardContent className="min-h-0 flex-1">
         {items.length === 0 ? (

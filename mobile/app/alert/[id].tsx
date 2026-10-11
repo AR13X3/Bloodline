@@ -131,9 +131,6 @@ export default function AlertScreen() {
                   </T>
                 </View>
                 <RangeBar value={r.valueNumber} low={rangeLow(r.range)} high={rangeHigh(r.range)} position={a.rangePosition} />
-                <T size={12} color={colors.textMuted}>
-                  The range is the one the lab printed for this patient, not a BloodLine table.
-                </T>
               </Card>
             </Animated.View>
           ) : null}

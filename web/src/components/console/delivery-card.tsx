@@ -38,7 +38,7 @@ export function DeliveryCard({ feed }: { feed: DashboardFeed | undefined }) {
   return (
     <Card>
       <CardHeader>
-        <SectionTitle icon={Send} title="Delivery" hint={s ? `Where ${s.name}'s alerts go` : "Demo GP"} />
+        <SectionTitle icon={Send} title="Delivery" />
       </CardHeader>
       <CardContent className="space-y-1">
         {CHANNELS.map((c) => {
@@ -105,7 +105,7 @@ export function StatsCard({ feed }: { feed: DashboardFeed | undefined }) {
   return (
     <Card>
       <CardHeader>
-        <SectionTitle icon={BellRing} title="This session" hint="Since the last reset" />
+        <SectionTitle icon={BellRing} title="This session" />
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-2.5">
         <Stat label="Reports" value={st?.reports ?? 0} />
