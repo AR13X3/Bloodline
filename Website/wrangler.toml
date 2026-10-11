@@ -1,0 +1,5 @@
+# Cloudflare Pages project for the BloodLine marketing site.
+# Deploy from this folder with: npm run deploy
+name = "bloodline"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-09-01"

@@ -1,0 +1,168 @@
+/* Connect page: the team and their LinkedIn links, over the same video stage. */
+
+/* Hidden until the intro starts, so nothing flashes before it animates in.
+   The failsafe reveals it anyway if the script never runs. */
+.js:not(.is-reduced) .connect {
+  opacity: 0;
+  animation: connect-failsafe 0.4s 3s forwards;
+}
+@keyframes connect-failsafe {
+  to { opacity: 1; }
+}
+
+.connect {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-block: clamp(130px, 18vh, 190px) clamp(80px, 12vh, 130px);
+}
+
+.connect__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.connect__mark {
+  width: clamp(64px, 7vw, 96px);
+  height: auto;
+  aspect-ratio: 35 / 34.5;
+  margin-bottom: clamp(26px, 4vh, 40px);
+}
+
+.connect__title {
+  font: 600 clamp(52px, 9vw, 140px)/0.92 var(--font-display);
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.connect__lede {
+  max-width: 42ch;
+  margin-top: 24px;
+  font-size: clamp(18px, 1.5vw, 22px);
+  color: var(--mint);
+}
+
+.team {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: clamp(56px, 8vh, 96px);
+}
+
+.person {
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 300px;
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid var(--line-2);
+  background: linear-gradient(165deg, rgba(14, 34, 25, 0.84), rgba(6, 16, 11, 0.9));
+  transition: border-color 0.5s var(--ease);
+}
+.person::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(380px circle at var(--mx) var(--my), rgba(185, 211, 168, 0.14), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.person:hover { border-color: rgba(185, 211, 168, 0.36); }
+.person:hover::before { opacity: 1; }
+
+.person__avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 26px;
+  border-radius: 50%;
+  background: rgba(185, 211, 168, 0.1);
+  font: 600 24px/1 var(--font-display);
+  letter-spacing: 0.02em;
+  color: var(--mint);
+}
+
+.person__ring {
+  position: absolute;
+  inset: -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 14px);
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+.person__ring circle {
+  fill: none;
+  stroke: rgba(185, 211, 168, 0.55);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.person__name {
+  font: 600 clamp(22px, 1.9vw, 28px)/1.1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.person__role {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.person__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  margin-top: auto;
+  padding: 0 16px 0 14px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: #0a1d14;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background-color 0.35s var(--ease);
+}
+.person__link:hover { background: #fff; }
+.person__link svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.person__arrow { transition: transform 0.45s var(--ease); }
+.person__link:hover .person__arrow { transform: translate(2px, -2px); }
+
+.connect__back {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(48px, 7vh, 72px);
+}
+.btn svg.flip { transform: scaleX(-1); }
+.btn:hover svg.flip { transform: scaleX(-1) translateX(4px); }
+
+.nav .btn[aria-current="page"] { pointer-events: none; }
+.footer__links a[aria-current="page"] { color: var(--text); }
+
+@media (max-width: 1000px) {
+  .team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .team { grid-template-columns: 1fr; }
+  .person { min-height: 0; }
+  .person__link { margin-top: 24px; }
+}

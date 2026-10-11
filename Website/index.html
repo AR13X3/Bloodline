@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en-AU" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BloodLine · Makes sure the GP knows</title>
+<meta name="description" content="BloodLine reads every incoming blood test report and lets the GP know when a result may need review. A safety net for Australian general practice.">
+<meta name="theme-color" content="#06110c">
+<meta name="color-scheme" content="dark">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="BloodLine · Makes sure the GP knows">
+<meta property="og:description" content="The lab makes sure the result arrives. BloodLine makes sure the GP knows.">
+<meta property="og:image" content="/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300..800;1,400..600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="preload" as="image" href="/media/poster.jpg">
+<script>document.documentElement.classList.replace("no-js", "js");</script>
+<script type="module" src="/src/main.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Fixed video stage. Every section scrolls over it. -->
+<div class="stage-bg" aria-hidden="true">
+  <video class="stage-bg__video" src="/media/coral-reeds-loop.mp4" poster="/media/poster.jpg" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
+  <div class="stage-bg__tint"></div>
+  <div class="stage-bg__veil"></div>
+  <div class="stage-bg__vignette"></div>
+  <div class="stage-bg__grain"></div>
+</div>
+
+<button class="bg-toggle" type="button" aria-pressed="false" aria-label="Pause background video" data-bg-toggle>
+  <svg viewBox="0 0 24 24" class="bg-toggle__pause" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
+  <svg viewBox="0 0 24 24" class="bg-toggle__play" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5Z"/></svg>
+</button>
+
+<!-- Loader -->
+<div class="loader" aria-hidden="true">
+  <div class="loader__mark">
+    <svg class="mark loader__logo" viewBox="0 4 35 34.5" aria-hidden="true"><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg>
+    <span class="loader__word">BloodLine</span>
+  </div>
+  <div class="loader__count"><span class="loader__num">0</span></div>
+</div>
+
+<!-- Nav -->
+<header class="nav" data-nav>
+  <a class="nav__brand" href="#top" data-scroll-to aria-label="BloodLine, back to top">
+    <svg class="mark logo" viewBox="0 4 35 34.5" aria-hidden="true" data-mark-hover><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg>
+    <span>BloodLine</span>
+  </a>
+  <nav class="nav__links" aria-label="Sections">
+    <a href="#how" data-scroll-to>How it works</a>
+    <a href="#triggers" data-scroll-to>What it checks</a>
+    <a href="#app" data-scroll-to>The app</a>
+    <a href="#practice" data-scroll-to>For practices</a>
+  </nav>
+  <a class="btn btn--light btn--sm" href="%BASE_URL%connect" data-magnetic>Connect with us</a>
+</header>
+<div class="progress" aria-hidden="true"><span></span></div>
+
+<main id="main">
+
+  <!-- 1. Hero -->
+  <section class="hero" id="top" data-veil="0.15">
+    <div class="hero__inner wrap">
+      <p class="hero__pre" data-hero-pre>The lab makes sure the result arrives.</p>
+      <h1 class="hero__title" data-hero-title>BloodLine makes sure the GP&nbsp;knows.</h1>
+      <div class="hero__foot">
+        <p class="hero__lede" data-hero-fade>A safety net for blood test results in Australian general practice. BloodLine reads every incoming report and lets you know when a result may need review.</p>
+        <div class="hero__ctas" data-hero-fade>
+          <a class="btn btn--light" href="%BASE_URL%connect" data-magnetic>Connect with us
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn--ghost" href="#how" data-scroll-to>See how it works</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__float" aria-hidden="true">
+      <div class="hcard hcard--range" data-depth="0.6">
+        <div class="hcard__row">
+          <span class="hcard__label">Haemoglobin</span>
+          <span class="chip chip--amber">Outside range</span>
+        </div>
+        <div class="hcard__value">118 <small>g/L</small></div>
+        <div class="ruler">
+          <span class="ruler__band" style="--from:0.3;--to:0.8"></span>
+          <span class="ruler__ticks"></span>
+          <span class="ruler__dot" style="--at:0.18"></span>
+        </div>
+        <div class="hcard__scale"><span>130</span><span>180</span></div>
+      </div>
+      <div class="hcard hcard--note" data-depth="1.2">
+        <span class="hcard__icon">
+          <svg class="mark mark--ink" viewBox="0 4 35 34.5" aria-hidden="true"><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg>
+        </span>
+        <div>
+          <div class="hcard__app">BloodLine <span>now</span></div>
+          <div class="hcard__msg">A result may need your review.</div>
+        </div>
+      </div>
+    </div>
+
+    <svg class="hero__pulse" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true">
+      <path class="hero__pulse-base" d="M0 120 H1040 L1060 120 L1075 96 L1093 150 L1119 30 L1145 176 L1165 104 L1183 120 H1340 L1358 112 L1374 120 H1600"/>
+      <path class="hero__pulse-glow" d="M0 120 H1040 L1060 120 L1075 96 L1093 150 L1119 30 L1145 176 L1165 104 L1183 120 H1340 L1358 112 L1374 120 H1600"/>
+    </svg>
+
+    <div class="hero__scroll" aria-hidden="true"><span>Scroll</span><i></i></div>
+  </section>
+
+  <!-- 2. The problem, said plainly -->
+  <section class="statement" data-veil="0.55" aria-label="The problem">
+    <div class="statement__pin">
+      <p class="statement__text wrap" data-statement>Labs deliver the result, and phone through the critical ones. After that, follow&#8209;up rests on a busy inbox and a process that usually works. <em>Some results are never acted&nbsp;on.</em></p>
+    </div>
+  </section>
+
+  <!-- 3. Evidence -->
+  <section class="evidence sheet" data-veil="0.7">
+    <div class="wrap">
+      <h2 class="title" data-reveal-title>Missed follow&#8209;up is more common than it should&nbsp;be.</h2>
+      <div class="stats">
+        <article class="stat" data-stat>
+          <div class="stat__num"><span data-count="6.8" data-decimals="1">6.8</span>–<span data-count="62">62</span><i>%</i></div>
+          <div class="stat__viz stat__viz--range" aria-hidden="true">
+            <span class="stat__track"></span><span class="stat__band"></span>
+          </div>
+          <p>of lab results went without follow&#8209;up, across 19 ambulatory&#8209;care studies.</p>
+          <a class="stat__src" href="https://newsroom.unsw.edu.au/news/health/doctors-failing-follow-test-results" target="_blank" rel="noopener">Callen et al., 2012 · US studies</a>
+        </article>
+        <article class="stat" data-stat>
+          <div class="stat__num"><span data-count="433">433</span><i>%</i></div>
+          <svg class="stat__viz stat__viz--line" viewBox="0 0 240 64" preserveAspectRatio="none" aria-hidden="true">
+            <path class="stat__area" d="M0 60 L60 58 L110 56 L150 52 L175 30 L200 12 L240 6 L240 64 L0 64Z"/>
+            <path class="stat__line" d="M0 60 L60 58 L110 56 L150 52 L175 30 L200 12 L240 6"/>
+          </svg>
+          <p>jump in patients viewing their pathology and imaging reports, in the first week they were shared by default.</p>
+          <a class="stat__src" href="https://anmj.org.au/modernising-my-health-record-improved-access-to-pathology-and-diagnostic-imaging-results/" target="_blank" rel="noopener">Australian Digital Health Agency, 2026</a>
+        </article>
+        <article class="stat" data-stat>
+          <div class="stat__num"><span data-count="75.9" data-decimals="1">75.9</span><i>%</i></div>
+          <div class="stat__viz stat__viz--dots" aria-hidden="true"></div>
+          <p>of practices run Best Practice, the first practice software BloodLine plans to connect with.</p>
+          <a class="stat__src" href="https://www.aihw.gov.au/reports/primary-health-care/pipqi-measures-2025-26" target="_blank" rel="noopener">AIHW, PIP QI practices 2025–26</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. How it works: pinned, scrubbed pipeline -->
+  <section class="how" id="how" data-veil="0.82">
+    <div class="how__pin">
+      <div class="how__grid wrap">
+        <div class="how__copy">
+          <h2 class="title title--sm">From report to review.</h2>
+          <div class="steps-wrap">
+          <ol class="steps" data-steps>
+            <li class="step is-active"><span class="step__n">01</span><div><h3>The report arrives</h3><p>From the lab, into your practice software, as it does today.</p></div></li>
+            <li class="step"><span class="step__n">02</span><div><h3>OCR copies the values</h3><p>Exactly what's printed on the report. Nothing is interpreted.</p></div></li>
+            <li class="step"><span class="step__n">03</span><div><h3>Plain code checks each one</h3><p>Lab flag, printed range and your rules. The same answer every time.</p></div></li>
+            <li class="step"><span class="step__n">04</span><div><h3>You get an alert</h3><p>In the app, with a nudge by email, SMS or call. Messages never carry patient details.</p></div></li>
+            <li class="step"><span class="step__n">05</span><div><h3>You mark it seen</h3><p>Every check, message and action goes into the audit trail.</p></div></li>
+          </ol>
+          <div class="steps__rail" aria-hidden="true"><span></span></div>
+          </div>
+        </div>
+
+        <div class="pipe" aria-hidden="true">
+          <div class="pipe__inner">
+            <!-- The report -->
+            <div class="report" data-report>
+              <div class="report__head">
+                <div>
+                  <div class="report__lab">Pathology report</div>
+                  <div class="report__name">Full blood count &amp; iron studies</div>
+                </div>
+                <div class="report__patient">Daniel Nguyen<br><span>Collected 11 Oct</span></div>
+              </div>
+              <div class="report__cols"><span>Test</span><span>Result</span><span>Range</span><span>Flag</span></div>
+              <div class="report__rows">
+                <div class="rrow is-flag" data-row="0"><span>Haemoglobin</span><b>118 g/L</b><span>130–180</span><em>L</em></div>
+                <div class="rrow" data-row="1"><span>White cell count</span><b>6.2 ×10⁹/L</b><span>4.0–11.0</span><em></em></div>
+                <div class="rrow" data-row="2"><span>Platelets</span><b>245 ×10⁹/L</b><span>150–400</span><em></em></div>
+                <div class="rrow" data-row="3"><span>MCV</span><b>84 fL</b><span>80–100</span><em></em></div>
+                <div class="rrow is-flag" data-row="4"><span>Ferritin</span><b>12 µg/L</b><span>30–500</span><em>L</em></div>
+                <div class="report__scan"><i></i></div>
+              </div>
+              <div class="report__comment"><b>Lab comment</b> Low haemoglobin with low ferritin. Suggest clinical correlation and repeat FBC in 6 weeks.</div>
+            </div>
+
+            <!-- Values as BloodLine reads them -->
+            <div class="fields" data-fields>
+              <div class="fields__title"><span class="mono">read.json</span></div>
+              <div class="field is-flag" data-field="0"><span class="field__k">Haemoglobin</span><span class="field__v">118</span><span class="field__verdict v-amber">Lab flag · Outside range</span></div>
+              <div class="field" data-field="1"><span class="field__k">White cell count</span><span class="field__v">6.2</span><span class="field__verdict v-ok">In range</span></div>
+              <div class="field" data-field="2"><span class="field__k">Platelets</span><span class="field__v">245</span><span class="field__verdict v-ok">In range</span></div>
+              <div class="field" data-field="3"><span class="field__k">MCV</span><span class="field__v">84</span><span class="field__verdict v-ok">In range</span></div>
+              <div class="field is-flag" data-field="4"><span class="field__k">Ferritin</span><span class="field__v">12</span><span class="field__verdict v-amber">Lab flag · Outside range</span></div>
+            </div>
+
+            <!-- Delivery -->
+            <div class="channels" data-channels>
+              <span class="channel"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg>App</span>
+              <span class="channel"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>Email</span>
+              <span class="channel"><svg viewBox="0 0 24 24"><path d="M4 5.5h16v10H9l-5 4v-14Z"/></svg>SMS</span>
+              <span class="channel"><svg viewBox="0 0 24 24"><path d="M6.5 3.5h3l1.5 4.5-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2Z"/></svg>Call</span>
+            </div>
+
+            <div class="phone-mini" data-phone>
+              <div class="phone-mini__screen">
+                <div class="pm__bar"><span>9:41</span><span class="pm__cam"></span><span class="pm__sys"><svg viewBox="0 0 54 14" aria-hidden="true"><path d="M2 11h2v1H2zM6 9h2v3H6zM10 6h2v6h-2zM14 3h2v9h-2z"/><path d="M27 12 20.5 5.6a9.2 9.2 0 0 1 13 0Z"/><rect x="38" y="3" width="13" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="39.6" y="4.6" width="8.4" height="4.8" rx="1"/><rect x="51.6" y="5.6" width="1.4" height="2.8" rx=".6"/></svg></span></div>
+                <div class="pm__notif" data-notif>
+                  <span class="pm__icon"><svg class="mark" viewBox="0 4 35 34.5" aria-hidden="true"><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg></span>
+                  <div><b>BloodLine</b><p>A result may need your review.</p></div>
+                </div>
+                <div class="pm__alert" data-alert>
+                  <div class="pm__chips"><span class="chip chip--sm">Lab flag</span><span class="chip chip--sm chip--amber">Outside range</span></div>
+                  <div class="pm__test">Haemoglobin</div>
+                  <div class="pm__val">118 <small>g/L</small></div>
+                  <div class="ruler ruler--sm">
+                    <span class="ruler__band" style="--from:0.3;--to:0.8"></span>
+                    <span class="ruler__ticks"></span>
+                    <span class="ruler__dot" style="--at:0.18"></span>
+                  </div>
+                  <div class="pm__why">
+                    <div class="pm__reason">
+                      <span class="pm__ri"><svg viewBox="0 0 24 24"><path d="M5 21V4.5M5 4.5h11l-2 4 2 4H5"/></svg></span>
+                      <div><b>The lab flagged this result</b><small>Flag printed on the report: L</small></div>
+                    </div>
+                    <div class="pm__reason">
+                      <span class="pm__ri pm__ri--amber"><svg viewBox="0 0 24 24"><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4"/></svg></span>
+                      <div><b>Below the printed range</b><small>118 g/L · range 130–180</small></div>
+                    </div>
+                  </div>
+                  <div class="pm__seen" data-seen>
+                    <span class="pm__seen-fill"></span>
+                    <svg viewBox="0 0 24 24" class="pm__check"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.6 2.6L16 9.6"/></svg>
+                    <span class="pm__labels"><span class="pm__seen-label">Mark as seen</span><span class="pm__seen-done">Seen</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="audit" data-audit>
+              <span class="audit__dot"></span>
+              <span class="mono" data-audit-text>09:42 · Dr Chen marked Haemoglobin as seen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Three triggers: stacking cards -->
+  <section class="triggers" id="triggers" data-veil="0.6">
+    <div class="wrap">
+      <h2 class="title" data-reveal-title>It alerts on exactly three&nbsp;things.</h2>
+    </div>
+    <div class="stack wrap">
+      <article class="tcard" data-tcard>
+        <div class="tcard__copy">
+          <span class="tcard__n">01</span>
+          <h3>The lab flagged&nbsp;it.</h3>
+          <p>If the lab marks a result as abnormal, you hear about&nbsp;it.</p>
+        </div>
+        <div class="tcard__viz viz-flag" aria-hidden="true">
+          <div class="vrow">
+            <span>Haemoglobin</span><b>118 g/L</b><span class="vrow__range">130–180</span>
+            <span class="vflag">L<i></i><i></i></span>
+          </div>
+          <div class="vline"><svg viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M100 0 V40"/></svg></div>
+          <div class="valert"><span class="chip chip--amber">Lab flag</span><span>Alert sent to Dr Chen</span></div>
+        </div>
+      </article>
+
+      <article class="tcard" data-tcard>
+        <div class="tcard__copy">
+          <span class="tcard__n">02</span>
+          <h3>It's outside the printed&nbsp;range.</h3>
+          <p>Each value is compared with the range printed on that patient's report, not a generic&nbsp;table.</p>
+        </div>
+        <div class="tcard__viz viz-range is-out" aria-hidden="true">
+          <div class="vbig"><span data-range-val>118</span><small>g/L</small></div>
+          <div class="ruler ruler--lg">
+            <span class="ruler__band" style="--from:0.3;--to:0.8"></span>
+            <span class="ruler__ticks"></span>
+            <span class="ruler__dot" data-range-dot style="--at:0.18"></span>
+          </div>
+          <div class="hcard__scale"><span>130</span><span>180</span></div>
+          <div class="vstate"><span class="chip chip--ok" data-range-ok>In range</span><span class="chip chip--amber" data-range-out>Outside range</span></div>
+        </div>
+      </article>
+
+      <article class="tcard" data-tcard>
+        <div class="tcard__copy">
+          <span class="tcard__n">03</span>
+          <h3>It matches your&nbsp;rule.</h3>
+          <p>Set a rule for one patient. A matching value alerts you, even when it's inside the range and&nbsp;unflagged.</p>
+        </div>
+        <div class="tcard__viz viz-rule" aria-hidden="true">
+          <div class="vrule">
+            <svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h10M4 18h7M17 5l1.5 1.5L21 4M17 11l1.5 1.5L21 10"/></svg>
+            <div><small>Tom Fletcher · your rule</small><b>Potassium above 5&nbsp;mmol/L</b></div>
+          </div>
+          <div class="vincoming">
+            <div class="vincoming__val">5.1 <small>mmol/L</small></div>
+            <div class="vincoming__meta"><span class="chip chip--ok">In range</span><span class="chip">No lab flag</span></div>
+          </div>
+          <div class="vmatch"><span class="chip chip--amber">Matches your rule</span></div>
+        </div>
+      </article>
+
+      <article class="tcard tcard--coda" data-tcard>
+        <div class="tcard__copy">
+          <span class="tcard__n">+</span>
+          <h3>If it can't check, it says&nbsp;so.</h3>
+          <p>A value that isn't a plain number, like “&lt;0.01”, gets its own alert. BloodLine never stays&nbsp;silent.</p>
+        </div>
+        <div class="tcard__viz viz-cant" aria-hidden="true">
+          <div class="vcant">
+            <span class="vcant__label">TSH</span>
+            <span class="vcant__val" data-scramble>&lt;0.01</span>
+          </div>
+          <div class="vcant__q"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.8M12 17h.01"/></svg></div>
+          <span class="chip chip--sky">Can't be checked</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 6. The app -->
+  <section class="app" id="app" data-veil="0.35">
+    <div class="app__pin">
+      <div class="app__head wrap">
+        <h2 class="title" data-reveal-title>Open it. See why. Mark it&nbsp;seen.</h2>
+      </div>
+      <div class="app__stage">
+        <ul class="callouts callouts--left" aria-hidden="true">
+          <li data-callout="0"><span>Everything to review, in one list</span></li>
+          <li data-callout="1"><span>Why you're seeing it, in plain words</span></li>
+          <li data-callout="2"><span>The trend, and the original report</span></li>
+          <li data-callout="3"><span>Rules for one patient, in a few taps</span></li>
+        </ul>
+        <div class="phone" data-phone-3d>
+          <div class="phone__frame">
+            <span class="phone__key phone__key--power"></span>
+            <span class="phone__key phone__key--volume"></span>
+            <div class="phone__screen" data-phone-screen>
+              <div class="phone__status" aria-hidden="true"><span class="phone__time">9:41</span><span class="phone__cam"></span><span class="phone__sys"><svg viewBox="0 0 54 14" aria-hidden="true"><path d="M2 11h2v1H2zM6 9h2v3H6zM10 6h2v6h-2zM14 3h2v9h-2z"/><path d="M27 12 20.5 5.6a9.2 9.2 0 0 1 13 0Z"/><rect x="38" y="3" width="13" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="39.6" y="4.6" width="8.4" height="4.8" rx="1"/><rect x="51.6" y="5.6" width="1.4" height="2.8" rx=".6"/></svg></span></div>
+              <div class="phone__view">
+              <img src="/media/app/alerts.webp" alt="BloodLine app: three results to review" width="720" height="1517" data-screen="0" data-status="#f1f4f6">
+              <img src="/media/app/alert-detail.webp" alt="Alert detail: haemoglobin 118 g/L, below the printed range, with reasons" width="720" height="1517" data-screen="1" data-status="#dce9ee" loading="lazy">
+              <img src="/media/app/alert-trend.webp" alt="Alert detail: reasons, trend chart and Mark as seen" width="720" height="1517" data-screen="2" data-status="#dce9ee" loading="lazy">
+              <img src="/media/app/new-rule.webp" alt="New rule: alert when haemoglobin is below 110 g/L for three months" width="720" height="1517" data-screen="3" data-status="#f1f4f6" loading="lazy">
+              </div>
+              <div class="phone__gesture"><i></i></div>
+            </div>
+          </div>
+          <div class="phone__glow"></div>
+        </div>
+        <ul class="callouts callouts--right" aria-hidden="true">
+          <li data-callout="0"><span>Amber means it needs review</span></li>
+          <li data-callout="1"><span>The printed range, drawn to scale</span></li>
+          <li data-callout="2"><span>One tap to mark it seen</span></li>
+          <li data-callout="3"><span>Rules expire unless you renew them</span></li>
+        </ul>
+        <div class="app__dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. What it doesn't do -->
+  <section class="nots sheet" data-veil="0.88" aria-label="What BloodLine doesn't do">
+    <div class="nots__rows" aria-hidden="true">
+      <div class="nots__row" data-row-dir="-1">
+        <span>Doesn't diagnose</span><span class="o">Doesn't decide urgency</span><span>Doesn't diagnose</span><span class="o">Doesn't decide urgency</span><span>Doesn't diagnose</span><span class="o">Doesn't decide urgency</span>
+      </div>
+      <div class="nots__row" data-row-dir="1">
+        <span class="o">Doesn't replace your inbox review</span><span>Doesn't replace the lab's call</span><span class="o">Doesn't replace your inbox review</span><span>Doesn't replace the lab's call</span>
+      </div>
+      <div class="nots__row" data-row-dir="-1">
+        <span>Doesn't automate follow&#8209;up</span><span class="o">Doesn't diagnose</span><span>Doesn't automate follow&#8209;up</span><span class="o">Doesn't diagnose</span><span>Doesn't automate follow&#8209;up</span>
+      </div>
+    </div>
+    <div class="nots__center wrap">
+      <p class="sr-only">BloodLine doesn't diagnose, decide urgency, automate follow-up, or replace your inbox review or the lab's phone call.</p>
+      <h2 class="nots__title" data-nots-title>It just makes sure you&nbsp;know.</h2>
+    </div>
+  </section>
+
+  <!-- 8. Why now: horizontal track -->
+  <section class="why" data-veil="0.5">
+    <div class="why__pin">
+      <div class="why__head wrap">
+        <h2 class="title" data-reveal-title>Why&nbsp;now.</h2>
+        <div class="why__progress" aria-hidden="true"><span></span></div>
+      </div>
+      <div class="why__track" data-why-track>
+        <article class="wcard">
+          <span class="wcard__date">1 July 2026</span>
+          <h3>Patients can see results first.</h3>
+          <p>Pathology reports now go to My Health Record by default, mostly without the old 7&#8209;day delay. A patient may read a result before anyone at the practice has acted on it.</p>
+          <svg class="wcard__art" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="44"/><path d="M60 30v30l20 12"/></svg>
+        </article>
+        <article class="wcard">
+          <span class="wcard__date">26 August 2026</span>
+          <h3>Follow&#8209;up is an accreditation standard.</h3>
+          <p>The RACGP's 6th edition Standards keep a dedicated criterion for follow&#8209;up systems: CG6.</p>
+          <svg class="wcard__art" viewBox="0 0 120 120" aria-hidden="true"><path d="M60 16 96 30v28c0 22-15 38-36 46-21-8-36-24-36-46V30Z"/><path d="m44 60 11 11 22-23"/></svg>
+        </article>
+        <article class="wcard">
+          <span class="wcard__date">Late 2025</span>
+          <h3>Labs have started texting doctors.</h3>
+          <p>Australian Clinical Labs texts doctors about high&#8209;risk results and asks them to confirm. It covers one lab, judged by that lab's own criteria.</p>
+          <svg class="wcard__art" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 26h80v52H48L26 96V78h-6Z"/><path d="M40 46h40M40 60h26"/></svg>
+        </article>
+        <article class="wcard">
+          <span class="wcard__date">Now</span>
+          <h3>One connection reaches most practices.</h3>
+          <p>Halo Connect is the only connection method for Bp Omni, and Bp Premier integrations are moving to it.</p>
+          <svg class="wcard__art" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="12"/><circle cx="22" cy="30" r="8"/><circle cx="98" cy="30" r="8"/><circle cx="22" cy="90" r="8"/><circle cx="98" cy="90" r="8"/><path d="M29 35l21 17M91 35 70 52M29 85l21-17M91 85 70 68"/></svg>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. For practices -->
+  <section class="practice sheet" id="practice" data-veil="0.86">
+    <div class="wrap">
+      <h2 class="title" data-reveal-title>Made for the practice you already&nbsp;run.</h2>
+      <div class="bento">
+        <article class="tile tile--wide" data-tile>
+          <h3>Plugs in where results already&nbsp;land.</h3>
+          <p>Labs change nothing. BloodLine's first integration route is Best Practice, through Halo&nbsp;Connect.</p>
+          <svg class="flow" viewBox="0 0 640 150" aria-hidden="true">
+            <path class="flow__line" id="flowPath" d="M70 75 C150 75 170 75 250 75 S390 75 470 75 S560 75 590 75"/>
+            <!-- Packets sit under the nodes, so they pass behind each one. -->
+            <circle class="flow__packet" r="6"/>
+            <circle class="flow__packet" r="6"/>
+            <g class="flow__node" transform="translate(70 75)"><circle r="30"/><text y="5">Lab</text></g>
+            <g class="flow__node" transform="translate(250 75)"><circle r="30"/><text y="5">Practice</text></g>
+            <g class="flow__node flow__node--brand" transform="translate(430 75)"><circle r="34"/>
+              <svg class="mark mark--ink" viewBox="0 4 35 34.5" x="-15" y="-15" width="30" height="30"><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg></g>
+            <g class="flow__node" transform="translate(590 75)"><circle r="30"/><text y="5">GP</text></g>
+          </svg>
+        </article>
+        <article class="tile" data-tile>
+          <span class="tile__icon"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg></span>
+          <h3>No patient details in&nbsp;messages.</h3>
+          <p>Email, SMS and calls only ask you to open the&nbsp;app.</p>
+        </article>
+        <article class="tile" data-tile>
+          <span class="tile__icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+          <h3>The same answer, every&nbsp;time.</h3>
+          <p>OCR only copies what's printed. Plain, deterministic code does every&nbsp;check.</p>
+        </article>
+        <article class="tile" data-tile>
+          <span class="tile__icon"><svg viewBox="0 0 24 24"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8.5"/></svg></span>
+          <h3>A full audit&nbsp;trail.</h3>
+          <p>Every check, message and action is&nbsp;recorded.</p>
+        </article>
+        <article class="tile" data-tile>
+          <span class="tile__icon"><svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6Z"/></svg></span>
+          <h3>Your judgement stays&nbsp;yours.</h3>
+          <p>BloodLine never diagnoses or decides urgency. You still review every&nbsp;result.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Connect -->
+  <section class="closing" id="connect" data-veil="0.1">
+    <div class="closing__inner wrap">
+      <svg class="mark closing__mark" viewBox="0 4 35 34.5" aria-hidden="true" data-closing-mark><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg>
+      <h2 class="closing__title" data-closing-title>Connect with&nbsp;us.</h2>
+      <p class="closing__lede" data-closing-fade>We'd love to hear from GPs, practice managers and investors. Find the team on&nbsp;LinkedIn.</p>
+      <div class="closing__ctas" data-closing-fade>
+        <a class="btn btn--light btn--lg" href="%BASE_URL%connect" data-magnetic>Meet the team
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner wrap">
+    <div class="footer__brand">
+      <svg class="mark logo" viewBox="0 4 35 34.5" aria-hidden="true" data-mark-hover><rect class="mark__bar" x="0" y="10.5" width="3" height="10.5"/><rect class="mark__bar" x="4" y="7" width="3" height="18.5"/><rect class="mark__bar" x="8" y="4" width="3" height="27"/><rect class="mark__bar" x="12" y="5.5" width="3" height="30"/><rect class="mark__bar" x="16" y="9" width="3" height="29.5"/><rect class="mark__bar" x="20" y="5.5" width="3" height="30"/><rect class="mark__bar mark__bar--accent" x="24" y="4" width="3" height="27"/><rect class="mark__bar" x="28" y="7" width="3" height="18.5"/><rect class="mark__bar" x="32" y="10.5" width="3" height="10.5"/></svg>
+      <span>BloodLine</span>
+    </div>
+    <p class="footer__line">The lab makes sure the result arrives. BloodLine makes sure the GP&nbsp;knows.</p>
+    <nav class="footer__links" aria-label="Footer">
+      <a href="#how" data-scroll-to>How it works</a>
+      <a href="#triggers" data-scroll-to>What it checks</a>
+      <a href="#app" data-scroll-to>The app</a>
+      <a href="%BASE_URL%connect">Connect with us</a>
+    </nav>
+    <p class="footer__fine">BloodLine is in development and not yet available for clinical use. © 2026 BloodLine.</p>
+  </div>
+</footer>
+<!-- Back to top: a bubble splits from the button while scrolling, and merges back when it stops. -->
+<button class="totop" type="button" aria-label="Back to the top" data-totop>
+  <span class="totop__goo" aria-hidden="true"><span class="totop__blob"></span><span class="totop__ball"></span></span>
+  <span class="totop__label" aria-hidden="true">Click to go back to the top</span>
+  <svg class="totop__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+</button>
+<svg class="goo-defs" aria-hidden="true" focusable="false">
+  <filter id="goo" x="-30%" y="-60%" width="160%" height="220%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo"/>
+    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+  </filter>
+</svg>
+</body>
+</html>
