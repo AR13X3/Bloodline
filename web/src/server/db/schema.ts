@@ -1,7 +1,7 @@
 // SQLite schema for the BloodLine demo. All data is synthetic.
 // Timestamps are ISO 8601 strings. JSON columns hold JSON text.
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS clinicians (
@@ -56,7 +56,10 @@ CREATE TABLE IF NOT EXISTS reports (
   file_hash               TEXT,
   status                  TEXT NOT NULL DEFAULT 'received'
                             CHECK (status IN ('received', 'read', 'checked', 'couldnt_read')),
-  extraction_source       TEXT CHECK (extraction_source IN ('ai', 'cache')),
+  extraction_source       TEXT CHECK (extraction_source IN ('ai', 'cache', 'fallback')),
+  extraction_model        TEXT,
+  extraction_cost_usd     REAL,
+  extraction_note         TEXT,
   error                   TEXT,
   created_at              TEXT NOT NULL
 );
@@ -159,6 +162,12 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at       TEXT NOT NULL
 );
 
+-- Presenter settings that survive "Reset demo", e.g. live_messages = 'on' | 'off'.
+CREATE TABLE IF NOT EXISTS app_settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 -- detail never contains secrets.
 CREATE TABLE IF NOT EXISTS audit_events (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,7 +181,7 @@ CREATE TABLE IF NOT EXISTS audit_events (
 `;
 
 // Tables cleared by "Reset demo", in foreign-key-safe order.
-// extraction_cache is deliberately absent.
+// extraction_cache and app_settings are deliberately absent.
 export const RESETTABLE_TABLES = [
   "notifications",
   "alerts",

@@ -7,7 +7,10 @@ import { seedDemoData, type SeedOptions } from "./seed";
 export type Db = DatabaseSync;
 
 export const DATA_DIR = path.join(process.cwd(), "data");
-export const REPORTS_DIR = path.join(DATA_DIR, "reports");
+/** Where report PDFs are stored. Overridable for tests. */
+export function reportsDir(): string {
+  return process.env.BLOODLINE_REPORTS_DIR || path.join(DATA_DIR, "reports");
+}
 const DEFAULT_DB_PATH = path.join(DATA_DIR, "bloodline.db");
 
 /** Opens a database, applies the schema, and seeds it if it's empty. */
@@ -17,6 +20,15 @@ export function openDb(filePath: string = DEFAULT_DB_PATH, seed: SeedOptions = s
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA foreign_keys = ON");
   db.exec("PRAGMA busy_timeout = 5000");
+
+  // Demo data is synthetic, so a schema change simply rebuilds the demo
+  // tables. The extraction cache and presenter settings are kept.
+  const { user_version: version } = db.prepare("PRAGMA user_version").get() as { user_version: number };
+  if (version !== 0 && version !== SCHEMA_VERSION) {
+    db.exec("PRAGMA foreign_keys = OFF");
+    for (const table of RESETTABLE_TABLES) db.exec(`DROP TABLE IF EXISTS ${table}`);
+    db.exec("PRAGMA foreign_keys = ON");
+  }
   db.exec(SCHEMA_SQL);
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
 
