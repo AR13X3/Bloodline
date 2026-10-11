@@ -6,10 +6,11 @@ import * as WebBrowser from "expo-web-browser";
 import { ArrowLeft, CheckCircle2, CircleHelp, FileText, Flag, ListChecks, MoveVertical, UserX } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { Button, Card, RangeBar, ReasonChip, SectionLabel, Sparkline, T, formatDate } from "@/components/ui";
+import { fade, rise, stagger } from "@/motion";
 import { useSession } from "@/session";
 import { colors, radius } from "@/theme";
 import type { AlertDetail } from "@/types";
@@ -95,7 +96,7 @@ export default function AlertScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
             <ArrowLeft size={22} color={colors.white} />
           </Pressable>
-          <Animated.View entering={FadeInDown.duration(450)}>
+          <Animated.View entering={rise()}>
             <T size={14} color="rgba(255,255,255,0.75)">
               {a.patient.name} · {formatDate(r.collectedAt)}
             </T>
@@ -118,37 +119,35 @@ export default function AlertScreen() {
           </Animated.View>
         </LinearGradient>
 
-        <View style={styles.body}>
+        <Animated.View entering={rise(stagger(1))} style={styles.body}>
           {r.valueNumber !== null && r.range ? (
-            <Animated.View entering={FadeInDown.delay(80).springify().damping(18)}>
-              <Card>
-                <View style={styles.rowBetween}>
-                  <T weight="semibold" size={14}>
-                    Printed range
-                  </T>
-                  <T weight="semibold" size={14} color={outside ? colors.amberText : colors.tealDeep}>
-                    {r.range} {r.unit ?? ""}
-                  </T>
-                </View>
-                <RangeBar value={r.valueNumber} low={rangeLow(r.range)} high={rangeHigh(r.range)} position={a.rangePosition} />
-              </Card>
-            </Animated.View>
+            <Card>
+              <View style={styles.rowBetween}>
+                <T weight="semibold" size={14}>
+                  Printed range
+                </T>
+                <T weight="semibold" size={14} color={outside ? colors.amberText : colors.tealDeep}>
+                  {r.range} {r.unit ?? ""}
+                </T>
+              </View>
+              <RangeBar value={r.valueNumber} low={rangeLow(r.range)} high={rangeHigh(r.range)} position={a.rangePosition} />
+            </Card>
           ) : null}
 
-          <Animated.View entering={FadeInDown.delay(140).springify().damping(18)}>
+          <View>
             <SectionLabel>Why you&apos;re seeing this</SectionLabel>
             <Card style={{ gap: 14 }}>{reasonsExplained(a).map((i) => <View key={i.key}>{i.node}</View>)}</Card>
-          </Animated.View>
+          </View>
 
           {r.labComment ? (
-            <Animated.View entering={FadeInDown.delay(180).springify().damping(18)} style={styles.comment}>
+            <View style={styles.comment}>
               <T weight="semibold" size={13} color={colors.tealDeep}>
                 Lab comment
               </T>
               <T size={14} style={{ marginTop: 4, lineHeight: 20 }}>
                 {r.labComment}
               </T>
-            </Animated.View>
+            </View>
           ) : null}
 
           {a.report.nameMatches === false ? (
@@ -161,7 +160,7 @@ export default function AlertScreen() {
           ) : null}
 
           {a.history.length > 1 ? (
-            <Animated.View entering={FadeInDown.delay(220).springify().damping(18)}>
+            <View>
               <SectionLabel>Trend</SectionLabel>
               <Card>
                 <Sparkline points={a.history} />
@@ -174,26 +173,26 @@ export default function AlertScreen() {
                   </T>
                 </View>
               </Card>
-            </Animated.View>
+            </View>
           ) : null}
 
           {a.report.fileUrl ? (
             <Button label="View original report" variant="secondary" icon={FileText} onPress={() => WebBrowser.openBrowserAsync(api.reportUrl(a.report.fileUrl!))} />
           ) : null}
-        </View>
+        </Animated.View>
       </ScrollView>
 
       {isRecipient ? (
         <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
           {seenAt ? (
-            <Animated.View entering={ZoomIn.springify().damping(12)} style={styles.seen}>
+            <Animated.View entering={fade()} style={styles.seen}>
               <CheckCircle2 size={22} color={colors.green} />
               <T weight="semibold" size={15} color={colors.green}>
                 Seen at {new Date(seenAt).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" })}
               </T>
             </Animated.View>
           ) : (
-            <Animated.View entering={FadeIn}>
+            <Animated.View entering={fade()}>
               <Button label="Mark as seen" icon={CheckCircle2} loading={seen.isPending} onPress={() => seen.mutate()} />
             </Animated.View>
           )}

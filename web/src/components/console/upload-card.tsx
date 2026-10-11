@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { api, DEMO_GP_ID, type SendResult } from "@/lib/api";
+import { fade, rise, stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { SectionTitle } from "./bits";
 
@@ -95,8 +96,8 @@ export function UploadCard() {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          animate={{ scale: dragging ? 1.015 : 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+          animate={{ scale: dragging ? 1.01 : 1 }}
+          transition={fade()}
           className={cn(
             "relative flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed p-5 text-center transition-colors",
             dragging ? "border-brand bg-brand-soft" : file ? "border-brand/50 bg-brand-soft/40" : "border-border bg-muted/40 hover:border-brand/40 hover:bg-brand-soft/30",
@@ -106,7 +107,7 @@ export function UploadCard() {
           {dragging ? <BorderBeam size={120} duration={4} colorFrom="oklch(0.66 0.13 185)" colorTo="oklch(0.3 0.07 258)" /> : null}
           <AnimatePresence mode="wait" initial={false}>
             {file ? (
-              <motion.div key="file" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-3">
+              <motion.div key="file" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={fade(0, 0.15)} className="flex items-center gap-3">
                 <span className="grid size-11 place-items-center rounded-xl bg-white text-brand shadow-sm ring-1 ring-brand/20">
                   <FileText className="size-5" />
                 </span>
@@ -129,10 +130,10 @@ export function UploadCard() {
                 </Button>
               </motion.div>
             ) : (
-              <motion.div key="empty" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex flex-col items-center gap-2">
+              <motion.div key="empty" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={fade(0, 0.15)} className="flex flex-col items-center gap-2">
                 <motion.span
-                  animate={{ y: dragging ? -4 : [0, -3, 0] }}
-                  transition={dragging ? { type: "spring" } : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  animate={{ y: dragging ? -3 : 0 }}
+                  transition={fade()}
                   className="grid size-12 place-items-center rounded-2xl bg-white text-brand shadow-sm ring-1 ring-border"
                 >
                   <FileUp className="size-5" />
@@ -226,9 +227,7 @@ export function UploadCard() {
             {scenarios.data?.map((s, i) => (
               <motion.div
                 key={s.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 * i }}
+                {...rise(stagger(i))}
                 className="group flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-muted/60"
               >
                 <div className="min-w-0 flex-1">

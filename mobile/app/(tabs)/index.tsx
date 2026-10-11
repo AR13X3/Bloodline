@@ -3,14 +3,15 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { BellRing, Check, ChevronRight, ShieldCheck } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { RefreshControl, SectionList, StyleSheet, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
-import Animated, { FadeInDown, FadeOutUp, LinearTransition, useAnimatedStyle, withSequence, withSpring, withTiming, useSharedValue } from "react-native-reanimated";
+import Animated, { interpolateColor, useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { PressableScale, ReasonChip, T, reasonAccent, timeAgo } from "@/components/ui";
 import { useAlerts, useFreshAlerts } from "@/hooks";
+import { RISE, rise, stagger, useShowFor } from "@/motion";
 import { useSession } from "@/session";
 import { colors, radius, shadow } from "@/theme";
 import type { AlertListItem } from "@/types";
@@ -31,12 +32,13 @@ function SeenAction() {
   );
 }
 
+// How long new results stay highlighted, matching the banner.
+const FRESH_HOLD = 2500;
+
 function AlertCard({ alert, index, isFresh, onSeen }: { alert: AlertListItem; index: number; isFresh: boolean; onSeen: () => void }) {
-  const glow = useSharedValue(0);
-  useEffect(() => {
-    if (isFresh) glow.value = withSequence(withTiming(1, { duration: 250 }), withTiming(0, { duration: 1600 }));
-  }, [isFresh, glow]);
-  const glowStyle = useAnimatedStyle(() => ({ borderColor: glow.value > 0.01 ? `rgba(242,169,59,${glow.value})` : colors.border, borderWidth: 1 + glow.value }));
+  // Only the border colour changes; its width stays fixed so nothing reflows.
+  const glow = useShowFor(isFresh, FRESH_HOLD);
+  const glowStyle = useAnimatedStyle(() => ({ borderColor: interpolateColor(glow.value, [0, 1], [colors.border, colors.amber]) }));
 
   const unseen = !alert.seenAt;
   const card = (
@@ -76,7 +78,8 @@ function AlertCard({ alert, index, isFresh, onSeen }: { alert: AlertListItem; in
   );
 
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 45).springify().damping(16)} exiting={FadeOutUp} layout={LinearTransition.springify().damping(18)}>
+    // No layout or exiting animation: this list re-renders on every poll.
+    <Animated.View entering={rise(stagger(index))}>
       {unseen ? (
         <ReanimatedSwipeable friction={1.6} leftThreshold={70} renderLeftActions={() => <SeenAction />} onSwipeableOpen={onSeen}>
           {card}
@@ -89,11 +92,8 @@ function AlertCard({ alert, index, isFresh, onSeen }: { alert: AlertListItem; in
 }
 
 function NewResultBanner({ count, top }: { count: number; top: number }) {
-  const y = useSharedValue(-80);
-  useEffect(() => {
-    y.value = withSequence(withSpring(0, { damping: 14 }), withTiming(0, { duration: 2600 }), withTiming(-90, { duration: 300 }));
-  }, [count, y]);
-  const style = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
+  const shown = useShowFor(true, FRESH_HOLD);
+  const style = useAnimatedStyle(() => ({ opacity: shown.value, transform: [{ translateY: (shown.value - 1) * RISE }] }));
   return (
     <Animated.View style={[styles.banner, { top }, style]} pointerEvents="none">
       <BellRing size={18} color={colors.navy} />
@@ -133,8 +133,9 @@ export default function AlertsScreen() {
     const toReview = list.filter((a) => !a.seenAt);
     const seen = list.filter((a) => a.seenAt);
     return [
-      ...(toReview.length ? [{ title: "To review", data: toReview }] : []),
-      ...(seen.length ? [{ title: "Seen", data: seen }] : []),
+      // Stable keys, so cards don't remount (and fade in again) when a section appears or empties.
+      ...(toReview.length ? [{ key: "review", title: "To review", data: toReview }] : []),
+      ...(seen.length ? [{ key: "seen", title: "Seen", data: seen }] : []),
     ];
   }, [alerts.data]);
   const unseen = sections.find((s) => s.title === "To review")?.data.length ?? 0;
@@ -168,7 +169,7 @@ export default function AlertsScreen() {
                 {me ?? "Your alerts"}
               </T>
             </View>
-            <Animated.View entering={FadeInDown.springify().damping(16)}>
+            <Animated.View entering={rise()}>
               <LinearGradient colors={unseen ? ["#13294B", "#1C4E6B"] : ["#0E7F79", "#12A19A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.summary}>
                 <View style={styles.summaryIcon}>{unseen ? <BellRing size={22} color={colors.white} /> : <ShieldCheck size={22} color={colors.white} />}</View>
                 <View style={{ flex: 1 }}>
@@ -192,7 +193,7 @@ export default function AlertsScreen() {
             {section.title}
           </T>
         )}
-        renderItem={({ item, index }) => <AlertCard alert={item} index={index} isFresh={Boolean(fresh?.ids.includes(item.id))} onSeen={() => markSeen.mutate(item.id)} />}
+        renderItem={({ item, index }) => <AlertCard alert={item} index={index} isFresh={!item.seenAt && Boolean(fresh?.ids.includes(item.id))} onSeen={() => markSeen.mutate(item.id)} />}
         ListEmptyComponent={
           alerts.isLoading ? null : (
             <View style={styles.empty}>
@@ -210,7 +211,7 @@ export default function AlertsScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: radius.lg, padding: 14, paddingLeft: 18, overflow: "hidden", ...shadow },
+  card: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 14, paddingLeft: 18, overflow: "hidden", ...shadow },
   accent: { position: "absolute", left: 0, top: 0, bottom: 0, width: 5 },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
   dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.amber },

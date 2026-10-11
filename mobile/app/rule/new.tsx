@@ -4,10 +4,11 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, Check, Info, Search } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, FadeOut, ZoomIn } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { Button, Card, SectionLabel, Segmented, T, formatDate } from "@/components/ui";
+import { fade, rise } from "@/motion";
 import { useSession } from "@/session";
 import { colors, fonts, radius } from "@/theme";
 import type { TestForRules } from "@/types";
@@ -65,10 +66,10 @@ export default function NewRuleScreen() {
   if (save.isSuccess) {
     return (
       <View style={styles.center}>
-        <Animated.View entering={ZoomIn.springify().damping(10)} style={styles.done}>
-          <Check size={44} color={colors.white} strokeWidth={3} />
-        </Animated.View>
-        <Animated.View entering={FadeIn.delay(200)}>
+        <Animated.View entering={rise()} style={{ alignItems: "center" }}>
+          <View style={styles.done}>
+            <Check size={44} color={colors.white} strokeWidth={3} />
+          </View>
           <T weight="semibold" size={18} style={{ marginTop: 18 }}>
             Rule saved
           </T>
@@ -90,7 +91,7 @@ export default function NewRuleScreen() {
         </View>
 
         {reviewing && test && threshold !== null ? (
-          <Animated.View entering={FadeInDown.springify().damping(16)} style={{ gap: 14 }}>
+          <Animated.View entering={rise()} style={{ gap: 14 }}>
             <Card style={{ gap: 10, borderColor: colors.teal, borderWidth: 1 }}>
               <T size={13} color={colors.textMuted}>
                 BloodLine will alert you if
@@ -116,7 +117,7 @@ export default function NewRuleScreen() {
             </View>
           </Animated.View>
         ) : (
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={{ gap: 18 }}>
+          <Animated.View entering={fade()} style={{ gap: 18 }}>
             <View>
               <SectionLabel>Test</SectionLabel>
               <View style={styles.search}>
@@ -138,7 +139,7 @@ export default function NewRuleScreen() {
             </View>
 
             {test ? (
-              <Animated.View entering={FadeInDown.springify().damping(16)} style={{ gap: 18 }}>
+              <Animated.View entering={rise()} style={{ gap: 18 }}>
                 <View>
                   <SectionLabel>Alert me when it&apos;s</SectionLabel>
                   <Segmented options={[{ label: "Above", value: "above" }, { label: "Below", value: "below" }]} value={direction} onChange={setDirection} />

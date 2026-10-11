@@ -4,11 +4,12 @@ import { router } from "expo-router";
 import { ChevronRight, Server, Stethoscope, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { Logo } from "@/components/logo";
 import { Button, Card, PressableScale, T } from "@/components/ui";
+import { fade, rise, stagger } from "@/motion";
 import { prepareNotifications } from "@/notifications";
 import { useSession } from "@/session";
 import { colors, fonts, radius } from "@/theme";
@@ -31,10 +32,10 @@ export default function SignIn() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <LinearGradient colors={["#13294B", "#145A6E", "#12A19A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, { paddingTop: insets.top + 36 }]}>
-          <Animated.View entering={FadeInDown.duration(600)} style={styles.logoWrap}>
+          <Animated.View entering={rise()} style={styles.logoWrap}>
             <Logo size={56} light />
           </Animated.View>
-          <Animated.View entering={FadeInDown.delay(120).duration(600)}>
+          <Animated.View entering={rise()}>
             <T weight="bold" size={34} color={colors.white}>
               BloodLine
             </T>
@@ -42,7 +43,7 @@ export default function SignIn() {
         </LinearGradient>
 
         <View style={styles.body}>
-          <Animated.View entering={FadeInUp.delay(200).springify().damping(18)}>
+          <Animated.View entering={rise(stagger(1))}>
             <Card style={{ gap: 14 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Stethoscope size={18} color={colors.tealDeep} />
@@ -66,8 +67,8 @@ export default function SignIn() {
                   </View>
                 </View>
               ) : (
-                clinicians.data?.map((c, i) => (
-                  <Animated.View key={c.id} entering={FadeInUp.delay(260 + i * 70).springify().damping(18)}>
+                clinicians.data?.map((c) => (
+                  <Animated.View key={c.id} entering={fade()}>
                     <PressableScale onPress={() => choose(c.id)} style={styles.gpRow}>
                       <View style={styles.avatar}>
                         <T weight="semibold" size={15} color={colors.tealDeep}>
@@ -91,7 +92,7 @@ export default function SignIn() {
             </Card>
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(360).springify().damping(18)}>
+          <Animated.View entering={rise(stagger(2))}>
             <Card style={{ gap: 10 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Server size={16} color={colors.textMuted} />

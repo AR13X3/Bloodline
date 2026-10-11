@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { timeAgo, type DashboardFeed } from "@/lib/api";
+import { rise } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { ChannelGlyph, ReasonChip, SectionTitle, StatusPill, channelLabel } from "./bits";
 
@@ -46,13 +47,10 @@ export function ActivityCard({ feed }: { feed: DashboardFeed | undefined }) {
             <ul className="space-y-2">
               <AnimatePresence initial={false}>
                 {items.map((item) => (
+                  // New items fade in. No layout or exit animation: this list re-renders on every poll.
                   <motion.li
                     key={item.id}
-                    layout
-                    initial={{ opacity: 0, y: -12, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 340, damping: 28 }}
+                    {...rise()}
                     className={cn("rounded-xl p-3 ring-1 ring-inset", item.kind === "alert" ? "bg-card ring-review/30" : "bg-muted/30 ring-border")}
                   >
                     {item.kind === "alert" ? <AlertRow item={item.alert} now={now} /> : <MessageRow item={item.message} now={now} />}

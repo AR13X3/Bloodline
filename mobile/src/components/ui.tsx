@@ -1,8 +1,9 @@
 import { CircleHelp, Flag, ListChecks, MoveVertical, type LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextProps, type TextStyle, type ViewStyle } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
+import { DURATION, timing } from "@/motion";
 import { colors, fonts, radius, shadow } from "@/theme";
 import type { AlertReason } from "@/types";
 
@@ -17,16 +18,19 @@ export function Card({ children, style }: { children: ReactNode; style?: StylePr
 }
 
 export function PressableScale({ children, onPress, disabled, style }: { children: ReactNode; onPress?: () => void; disabled?: boolean; style?: StyleProp<ViewStyle> }) {
-  const scale = useSharedValue(1);
-  const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  // With reduced motion on, dim instead of shrinking.
+  const reduced = useReducedMotion();
+  const pressed = useSharedValue(0);
+  const animated = useAnimatedStyle(() => (reduced ? { opacity: 1 - 0.15 * pressed.value } : { transform: [{ scale: 1 - 0.02 * pressed.value }] }));
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      onPressIn={() => (scale.value = withSpring(0.97, { damping: 18, stiffness: 400 }))}
-      onPressOut={() => (scale.value = withSpring(1, { damping: 14, stiffness: 300 }))}
+      style={disabled && { opacity: 0.5 }}
+      onPressIn={() => (pressed.value = withTiming(1, timing(DURATION.press)))}
+      onPressOut={() => (pressed.value = withTiming(0, timing(DURATION.press)))}
     >
-      <Animated.View style={[animated, style, disabled && { opacity: 0.5 }]}>{children}</Animated.View>
+      <Animated.View style={[animated, style]}>{children}</Animated.View>
     </Pressable>
   );
 }

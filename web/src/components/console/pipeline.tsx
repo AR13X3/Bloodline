@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { AnimatedBeam } from "@/components/ui/animated-beam";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ChannelKey, LiveRun } from "@/hooks/use-live-run";
+import { fade, stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CHANNELS, SectionTitle } from "./bits";
 
@@ -38,39 +39,30 @@ function Node({
 }) {
   return (
     <div className={cn("relative z-10 flex items-center gap-3", small ? "flex-row" : "flex-col text-center")}>
-      <motion.div
+      {/* State shows as a colour change only: no pulse. */}
+      <div
         ref={nodeRef}
-        layout
-        animate={{ scale: state === "active" ? [1, 1.06, 1] : 1 }}
-        transition={state === "active" ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" } : { type: "spring", stiffness: 260, damping: 18 }}
         className={cn(
-          "relative grid place-items-center shadow-sm ring-2 transition-colors duration-500",
+          "relative grid place-items-center shadow-sm ring-2 transition-colors duration-200 ease-out",
           small ? "size-10 rounded-xl" : "size-16 rounded-2xl",
           NODE_STYLES[state],
         )}
       >
         <Icon className={small ? "size-4.5" : "size-6"} />
-        {state === "active" ? (
-          <motion.span
-            className={cn("absolute inset-0 ring-2 ring-brand", small ? "rounded-xl" : "rounded-2xl")}
-            initial={{ opacity: 0.7, scale: 1 }}
-            animate={{ opacity: 0, scale: 1.45 }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
-          />
-        ) : null}
         <AnimatePresence>
           {state === "done" && !small ? (
             <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={fade()}
               className="absolute -right-1.5 -bottom-1.5 grid size-5 place-items-center rounded-full bg-success text-white ring-2 ring-card"
             >
               <Check className="size-3" strokeWidth={3} />
             </motion.span>
           ) : null}
         </AnimatePresence>
-      </motion.div>
+      </div>
       <div className={cn("leading-tight", small ? "min-w-20" : "")}>
         <div className="text-xs font-semibold">{label}</div>
         <AnimatePresence mode="wait" initial={false}>
@@ -78,7 +70,8 @@ function Node({
             key={sub}
             initial={{ opacity: 0, y: 3 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -3 }}
+            exit={{ opacity: 0 }}
+            transition={fade(0, 0.15)}
             className="text-[11px] whitespace-nowrap text-muted-foreground"
           >
             {sub}
@@ -169,10 +162,16 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
       : "Lab flag · range · rules";
   const alertSub = s.alerted ? (alertsCount > 0 ? `${alertsCount} alert${alertsCount > 1 ? "s" : ""}` : "No alert needed") : s.checked ? "Routing…" : "To the right GP";
 
-  const beam = (reached: boolean, warn = false) =>
-    reached
-      ? { gradientStartColor: warn ? "#f5a524" : "#14b8a6", gradientStopColor: warn ? "#d97706" : "#0f2a4a", pathOpacity: 0.35 }
-      : { gradientStartColor: "transparent", gradientStopColor: "transparent", pathOpacity: 0.18 };
+  // Each beam sweeps once when its step is reached, then the path stays tinted.
+  const beam = (reached: boolean, warn = false) => ({
+    active: reached,
+    sweepKey: run?.sourceMessageId,
+    repeat: 0,
+    duration: 0.8,
+    ...(reached
+      ? { gradientStartColor: warn ? "#f5a524" : "#14b8a6", gradientStopColor: warn ? "#d97706" : "#0f2a4a", pathColor: warn ? "#f5a524" : "#14b8a6", pathOpacity: 0.4 }
+      : { gradientStartColor: "transparent", gradientStopColor: "transparent", pathColor: "gray", pathOpacity: 0.18 }),
+  });
 
   return (
     <Card className="relative overflow-hidden">
@@ -180,7 +179,7 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
         <SectionTitle icon={Route} title="Live pipeline" />
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {run ? (
-            <motion.span key={run.sourceMessageId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-mono">
+            <motion.span key={run.sourceMessageId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade()} className="font-mono">
               {run.sourceMessageId}
             </motion.span>
           ) : null}
@@ -214,9 +213,9 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
             ))}
           </div>
 
-          <AnimatedBeam containerRef={container} fromRef={reportRef} toRef={aiRef} duration={1.6} {...beam(Boolean(s.reading))} />
-          <AnimatedBeam containerRef={container} fromRef={aiRef} toRef={checksRef} duration={1.6} {...beam(Boolean(s.read), aiState === "warn")} />
-          <AnimatedBeam containerRef={container} fromRef={checksRef} toRef={alertRef} duration={1.6} {...beam(Boolean(s.checked))} />
+          <AnimatedBeam containerRef={container} fromRef={reportRef} toRef={aiRef} {...beam(Boolean(s.reading))} />
+          <AnimatedBeam containerRef={container} fromRef={aiRef} toRef={checksRef} {...beam(Boolean(s.read), aiState === "warn")} />
+          <AnimatedBeam containerRef={container} fromRef={checksRef} toRef={alertRef} {...beam(Boolean(s.checked))} />
           {CHANNELS.map((c, i) => {
             const state = channelState(c.key);
             return (
@@ -226,8 +225,7 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
                 fromRef={alertRef}
                 toRef={channelRefs[c.key]}
                 curvature={(1.5 - i) * 28}
-                duration={1.4}
-                delay={i * 0.12}
+                delay={stagger(i)}
                 {...beam(Boolean(s.alerted && alertsCount > 0) && state !== "muted" && state !== "idle", state === "error")}
               />
             );

@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useId, useState, type RefObject } from "react"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
+import { EASE_OUT } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 
 export interface AnimatedBeamProps {
@@ -12,6 +13,10 @@ export interface AnimatedBeamProps {
   toRef: RefObject<HTMLElement | null>
   curvature?: number
   reverse?: boolean
+  /** The beam sweeps when this turns true; while false it stays hidden. */
+  active?: boolean
+  /** Changing this replays the sweep, e.g. for a new run whose steps all arrive at once. */
+  sweepKey?: string | number
   pathColor?: string
   pathWidth?: number
   pathOpacity?: number
@@ -34,6 +39,8 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   toRef,
   curvature = 0,
   reverse = false, // Include the reverse prop
+  active = true,
+  sweepKey,
   duration = 5,
   delay = 0,
   pathColor = "gray",
@@ -49,6 +56,8 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   endYOffset = 0,
 }) => {
   const id = useId()
+  const reduceMotion = useReducedMotion()
+  const sweep = active && !reduceMotion
   const [pathD, setPathD] = useState("")
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 })
 
@@ -137,10 +146,13 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
     >
       <path
         d={pathD}
-        stroke={pathColor}
         strokeWidth={pathWidth}
-        strokeOpacity={pathOpacity}
         strokeLinecap="round"
+        style={{
+          stroke: pathColor,
+          strokeOpacity: pathOpacity,
+          transition: "stroke 0.2s ease-out, stroke-opacity 0.2s ease-out",
+        }}
       />
       <path
         d={pathD}
@@ -151,6 +163,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
       />
       <defs>
         <motion.linearGradient
+          key={sweepKey}
           className="transform-gpu"
           id={id}
           gradientUnits={"userSpaceOnUse"}
@@ -160,19 +173,21 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
             y1: "0%",
             y2: "0%",
           }}
-          animate={{
-            x1: gradientCoordinates.x1,
-            x2: gradientCoordinates.x2,
-            y1: gradientCoordinates.y1,
-            y2: gradientCoordinates.y2,
-          }}
-          transition={{
-            delay,
-            duration,
-            ease: [0.16, 1, 0.3, 1], // https://easings.net/#easeOutExpo
-            repeat,
-            repeatDelay,
-          }}
+          animate={
+            sweep
+              ? {
+                  x1: gradientCoordinates.x1,
+                  x2: gradientCoordinates.x2,
+                  y1: gradientCoordinates.y1,
+                  y2: gradientCoordinates.y2,
+                }
+              : { x1: "0%", x2: "0%", y1: "0%", y2: "0%" }
+          }
+          transition={
+            sweep
+              ? { delay, duration, ease: EASE_OUT, repeat, repeatDelay }
+              : { duration: 0 }
+          }
         >
           <stop stopColor={gradientStartColor} stopOpacity="0"></stop>
           <stop stopColor={gradientStartColor}></stop>

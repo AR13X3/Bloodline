@@ -3,10 +3,11 @@ import { router } from "expo-router";
 import { LogOut, Mail, MessageSquareText, PhoneCall, Plane, Radio, Server, Smartphone, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { Button, Card, PressableScale, SectionLabel, T, maskEmail, maskPhone } from "@/components/ui";
+import { rise, stagger } from "@/motion";
 import { useSession } from "@/session";
 import { colors, fonts, radius } from "@/theme";
 import type { ClinicianSettings } from "@/types";
@@ -66,7 +67,7 @@ export default function SettingsScreen() {
         </T>
       </View>
 
-      <Animated.View entering={FadeInDown.springify().damping(16)}>
+      <Animated.View entering={rise()}>
         <SectionLabel>How you&apos;re alerted</SectionLabel>
         <Card style={{ gap: 4 }}>
           <Row icon={Smartphone} title="In-app alert" detail="Always on while the app is open" value />
@@ -83,7 +84,7 @@ export default function SettingsScreen() {
         </View>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(80).springify().damping(16)}>
+      <Animated.View entering={rise(stagger(1))}>
         <SectionLabel>Away</SectionLabel>
         <Card style={{ gap: 10 }}>
           <Row
@@ -111,7 +112,7 @@ export default function SettingsScreen() {
         </Card>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(140).springify().damping(16)}>
+      <Animated.View entering={rise(stagger(2))}>
         <SectionLabel>Server</SectionLabel>
         <Card style={{ gap: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

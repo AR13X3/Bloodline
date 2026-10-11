@@ -3,10 +3,11 @@ import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, ListChecks, Plus } from "lucide-react-native";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { Button, Card, SectionLabel, T, formatDate } from "@/components/ui";
+import { rise } from "@/motion";
 import { useSession } from "@/session";
 import { colors, radius } from "@/theme";
 import type { RuleView } from "@/types";
@@ -54,7 +55,7 @@ export default function PatientScreen() {
   const ruleCard = (rule: RuleView, editable: boolean) => {
     const s = STATUS[rule.status];
     return (
-      <Animated.View key={rule.id} layout={LinearTransition.springify()} entering={FadeInDown.springify().damping(16)}>
+      <Animated.View key={rule.id} entering={rise()}>
         <Pressable disabled={!editable || rule.status !== "active"} onPress={() => manage(rule)} style={styles.rule}>
           <View style={styles.ruleIcon}>
             <ListChecks size={16} color={colors.tealDeep} />

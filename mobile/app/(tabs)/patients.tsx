@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ChevronRight, ListChecks } from "lucide-react-native";
 import { FlatList, StyleSheet, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
 import { PressableScale, T, formatDate } from "@/components/ui";
+import { rise, stagger } from "@/motion";
 import { useSession } from "@/session";
 import { colors, radius, shadow } from "@/theme";
 
@@ -34,7 +35,7 @@ export default function PatientsScreen() {
         </View>
       }
       renderItem={({ item, index }) => (
-        <Animated.View entering={FadeInDown.delay(index * 50).springify().damping(16)}>
+        <Animated.View entering={rise(stagger(index))}>
           <PressableScale onPress={() => router.push({ pathname: "/patient/[id]", params: { id: item.id } })} style={styles.row}>
             <View style={styles.avatar}>
               <T weight="semibold" size={15} color={colors.navy}>
