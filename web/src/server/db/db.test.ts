@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openDb, resetDemo } from "./index";
-import { DEMO_GP_ID } from "./seed";
+import { DEMO_GP_ID, TEST_TYPES } from "./seed";
 
 const noContacts = { demoGpEmail: null, demoGpMobile: null, now: new Date("2026-10-11T00:00:00Z") };
 
@@ -13,7 +13,7 @@ describe("demo database", () => {
     const db = openDb(":memory:", noContacts);
     expect(count(db, "clinicians")).toBe(3);
     expect(count(db, "patients")).toBe(6);
-    expect(count(db, "test_types")).toBe(7);
+    expect(count(db, "test_types")).toBe(TEST_TYPES.length);
     expect(count(db, "reports")).toBe(13);
     expect(count(db, "rules")).toBe(1);
     expect(count(db, "alerts")).toBe(0);

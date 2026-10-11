@@ -10,10 +10,18 @@ function normaliseName(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-// Compares units by spelling only: case, spaces, micro/Greek mu and "²"/"2"
-// are treated as the same. Different units are never converted.
+// Compares units by spelling only: case, spaces, micro/Greek mu, "²"/"2" and
+// "×"/"x" are treated as the same. Different units are never converted.
 export function normaliseUnit(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, "").replace(/μ/g, "µ").replace(/²/g, "2");
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/μ/g, "µ")
+    .replace(/²/g, "2")
+    .replace(/⁹/g, "9")
+    .replace(/×/g, "x")
+    .replace(/\*/g, "^");
 }
 
 export function isLabFlagged(flag: string | null | undefined): boolean {
@@ -23,9 +31,12 @@ export function isLabFlagged(flag: string | null | undefined): boolean {
 
 export function matchTestType(name: string, testTypes: TestTypeRef[]): TestTypeRef | null {
   const wanted = normaliseName(name);
-  return (
-    testTypes.find((t) => [t.name, ...t.nameAliases].some((n) => normaliseName(n) === wanted)) ?? null
-  );
+  return testTypes.find((t) => [t.name, ...t.nameAliases].some((n) => normaliseName(n) === wanted)) ?? null;
+}
+
+export function unitMatches(test: TestTypeRef, unit: string | null): boolean {
+  if (unit == null) return false;
+  return [test.unit, ...test.unitAliases].some((u) => normaliseUnit(u) === normaliseUnit(unit));
 }
 
 export function validateResult(extracted: ExtractedResult, testTypes: TestTypeRef[]): ValidatedResult {
@@ -36,18 +47,13 @@ export function validateResult(extracted: ExtractedResult, testTypes: TestTypeRe
   const range = parsePrintedRange(extracted.referenceRange);
   const base = { extracted, testTypeId: test?.id ?? null, labFlagged };
 
-  if (!test) return { ...base, status: "couldnt_check", reason: "unknown_test", value, range };
   if (value === null) return { ...base, status: "couldnt_check", reason: "value_not_numeric", value, range };
-
-  const unitOk =
-    extracted.unit != null &&
-    [test.unit, ...test.unitAliases].some((u) => normaliseUnit(u) === normaliseUnit(extracted.unit!));
-  if (!unitOk) return { ...base, status: "couldnt_check", reason: "unit_mismatch", value, range };
-
-  if (!extracted.referenceRange?.trim()) {
-    return { ...base, status: "couldnt_check", reason: "range_missing", value, range };
-  }
+  if (!extracted.referenceRange?.trim()) return { ...base, status: "couldnt_check", reason: "range_missing", value, range };
   if (!range) return { ...base, status: "couldnt_check", reason: "range_unreadable", value, range };
 
-  return { ...base, testTypeId: test.id, status: "checked", value, range };
+  if (!test) return { ...base, status: "checked", value, range, rulesApplicable: false, limitation: "unknown_test" };
+  if (!unitMatches(test, extracted.unit)) {
+    return { ...base, status: "checked", value, range, rulesApplicable: false, limitation: "unit_mismatch" };
+  }
+  return { ...base, status: "checked", value, range, rulesApplicable: true, limitation: null };
 }

@@ -41,6 +41,7 @@ async function send(db: ReturnType<typeof freshDb>, id: ScenarioId, sourceMessag
     labName: built.report.labName,
     collectedAt: built.report.collectedAt.toISOString(),
     sourceRows: built.sourceRows,
+    sourcePatientName: built.report.patient.name,
   });
   return { summary, pdf };
 }
@@ -155,6 +156,7 @@ describe("ingestReport with AI and live messages (network mocked)", () => {
               { testName: "Sodium", value: "138", unit: "mmol/L", referenceRange: "135 - 145", labFlag: null, labComment: null },
             ],
             reportComment: null,
+            patientName: "FLETCHER, Tom",
           });
           return Response.json({ model: "anthropic/claude-haiku-5.5", choices: [{ message: { content } }], usage: { prompt_tokens: 2000, completion_tokens: 150, cost: 0.0003 } });
         }
@@ -170,6 +172,7 @@ describe("ingestReport with AI and live messages (network mocked)", () => {
     const first = await send(db, "rule_match");
     expect(first.summary.extraction).toMatchObject({ source: "ai", model: "anthropic/claude-haiku-5.5", costUsd: 0.0003 });
     expect(first.summary.alerts[0].reasons).toEqual(["gp_rule"]);
+    expect(first.summary.patientCheck).toEqual({ nameOnReport: "FLETCHER, Tom", filedAs: "Tom Fletcher", matches: true });
     expect(first.summary.notifications.map((n) => `${n.channel}:${n.status}`)).toEqual(["app:sent", "email:sent", "sms:sent", "voice:sent"]);
 
     const aiBody = JSON.parse(calls.find((c) => c.url.includes("openrouter"))!.body);

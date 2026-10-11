@@ -1,7 +1,7 @@
 // SQLite schema for the BloodLine demo. All data is synthetic.
 // Timestamps are ISO 8601 strings. JSON columns hold JSON text.
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS clinicians (
@@ -60,6 +60,9 @@ CREATE TABLE IF NOT EXISTS reports (
   extraction_model        TEXT,
   extraction_cost_usd     REAL,
   extraction_note         TEXT,
+  -- Name printed on the report, compared with the selected patient (never used to pick one).
+  patient_name_on_report  TEXT,
+  patient_name_matches    INTEGER,
   error                   TEXT,
   created_at              TEXT NOT NULL
 );
@@ -97,6 +100,8 @@ CREATE TABLE IF NOT EXISTS results (
   check_status         TEXT NOT NULL DEFAULT 'pending'
                          CHECK (check_status IN ('pending', 'checked', 'couldnt_check')),
   couldnt_check_reason TEXT,
+  -- Range was checked, but GP rules couldn't apply: 'unknown_test' | 'unit_mismatch'.
+  rule_limitation      TEXT,
   collected_at         TEXT NOT NULL,
   created_at           TEXT NOT NULL
 );

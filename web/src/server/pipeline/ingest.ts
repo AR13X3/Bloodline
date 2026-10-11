@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { evaluateResult } from "../checks/evaluate";
+import { namesMatch } from "../checks/patient";
 import { planAlerts, type ClinicianAvailability } from "../checks/routing";
 import type { ActiveRule, AlertReason, ExtractedResult, TestTypeRef, ValidatedResult } from "../checks/types";
 import { validateResult } from "../checks/validate";
@@ -25,6 +26,7 @@ export interface IngestInput {
   collectedAt: string;
   /** Simulator only: what was printed, used as a labelled fallback if AI reading is unavailable. */
   sourceRows?: ExtractedResult[];
+  sourcePatientName?: string;
   actor?: string;
 }
 
@@ -39,7 +41,8 @@ export interface IngestSummary {
   status: "processed" | "duplicate";
   reportId: string | null;
   extraction?: ExtractionInfo;
-  results: { id: string; testName: string; value: string; checkStatus: string; couldntCheckReason: string | null }[];
+  patientCheck?: { nameOnReport: string | null; filedAs: string; matches: boolean | null };
+  results: { id: string; testName: string; value: string; checkStatus: string; couldntCheckReason: string | null; ruleLimitation: string | null }[];
   alerts: { id: string; recipientId: string; originalId: string; reasons: AlertReason[]; resultId: string }[];
   notifications: (NotificationOutcome & { recipientId: string })[];
 }
@@ -108,7 +111,13 @@ export async function ingestReport(db: DatabaseSync, input: IngestInput): Promis
 
   // Read the report.
   step("reading", reportId);
-  const extraction = await extractReport(db, { fileHash, pdf: input.pdf, fileName: input.fileName, sourceRows: input.sourceRows });
+  const extraction = await extractReport(db, {
+    fileHash,
+    pdf: input.pdf,
+    fileName: input.fileName,
+    sourceRows: input.sourceRows,
+    sourcePatientName: input.sourcePatientName,
+  });
   const extractionInfo: ExtractionInfo =
     extraction.source === "failed"
       ? { source: "failed", model: null, costUsd: null, note: extraction.error }
@@ -128,7 +137,24 @@ export async function ingestReport(db: DatabaseSync, input: IngestInput): Promis
     reportId,
   );
   audit(db, { actor: "system", action: `extraction.${extraction.source}`, entityType: "report", entityId: reportId, detail: extractionInfo });
-  step("read", reportId, { ...extractionInfo, count: extraction.source === "failed" ? 0 : extraction.results.length });
+
+  // Warn (never re-route) if the name on the report isn't the patient it was filed against.
+  const filedAs = (db.prepare("SELECT display_name FROM patients WHERE id = ?").get(input.patientId) as { display_name: string }).display_name;
+  const nameOnReport = extraction.source === "failed" ? null : extraction.patientName;
+  const patientCheck = { nameOnReport, filedAs, matches: namesMatch(nameOnReport, filedAs) };
+  db.prepare("UPDATE reports SET patient_name_on_report = ?, patient_name_matches = ? WHERE id = ?").run(
+    nameOnReport,
+    patientCheck.matches === null ? null : patientCheck.matches ? 1 : 0,
+    reportId,
+  );
+  if (patientCheck.matches === false) {
+    audit(db, { actor: "system", action: "report.patient_name_mismatch", entityType: "report", entityId: reportId, detail: { filedAs } });
+  }
+  step("read", reportId, {
+    ...extractionInfo,
+    count: extraction.source === "failed" ? 0 : extraction.results.length,
+    patientNameMatches: patientCheck.matches,
+  });
 
   // Validate, check and plan alerts.
   const testTypes = loadTestTypes(db);
@@ -149,14 +175,14 @@ export async function ingestReport(db: DatabaseSync, input: IngestInput): Promis
         }]
       : extraction.results.map((r) => validateResult(r, testTypes));
 
-  const summary: IngestSummary = { status: "processed", reportId, extraction: extractionInfo, results: [], alerts: [], notifications: [] };
+  const summary: IngestSummary = { status: "processed", reportId, extraction: extractionInfo, patientCheck, results: [], alerts: [], notifications: [] };
 
   transaction(db, () => {
     const insertResult = db.prepare(
       `INSERT INTO results (id, report_id, patient_id, test_type_id, test_name_raw, value_raw, value, unit_raw, range_raw,
                             range_low, range_high, range_low_inclusive, range_high_inclusive, lab_flag_raw, lab_flagged,
-                            lab_comment, check_status, couldnt_check_reason, collected_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            lab_comment, check_status, couldnt_check_reason, rule_limitation, collected_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     const insertCheck = db.prepare(
       "INSERT INTO checks (result_id, kind, rule_id, outcome, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)",
@@ -172,9 +198,17 @@ export async function ingestReport(db: DatabaseSync, input: IngestInput): Promis
       insertResult.run(
         resultId, reportId, input.patientId, v.testTypeId, e.testName, e.value, v.value, e.unit, e.referenceRange,
         v.range?.low ?? null, v.range?.high ?? null, v.range ? (v.range.lowInclusive ? 1 : 0) : 1, v.range ? (v.range.highInclusive ? 1 : 0) : 1,
-        e.labFlag, v.labFlagged ? 1 : 0, e.labComment, v.status, v.status === "couldnt_check" ? v.reason : null, input.collectedAt, now,
+        e.labFlag, v.labFlagged ? 1 : 0, e.labComment, v.status, v.status === "couldnt_check" ? v.reason : null,
+        v.status === "checked" ? v.limitation : null, input.collectedAt, now,
       );
-      summary.results.push({ id: resultId, testName: e.testName, value: e.value, checkStatus: v.status, couldntCheckReason: v.status === "couldnt_check" ? v.reason : null });
+      summary.results.push({
+        id: resultId,
+        testName: e.testName,
+        value: e.value,
+        checkStatus: v.status,
+        couldntCheckReason: v.status === "couldnt_check" ? v.reason : null,
+        ruleLimitation: v.status === "checked" ? v.limitation : null,
+      });
 
       const evaluation = evaluateResult(v, rules);
       for (const c of evaluation.checks) insertCheck.run(resultId, c.kind, c.ruleId ?? null, c.outcome, c.detail, now);

@@ -28,9 +28,9 @@ export type CouldntCheckReason =
 
 export const COULDNT_CHECK_LABELS: Record<CouldntCheckReason, string> = {
   extraction_failed: "The report couldn't be read",
-  unknown_test: "Test not recognised",
+  unknown_test: "Test not recognised, so GP rules can't apply",
   value_not_numeric: "Value isn't a plain number",
-  unit_mismatch: "Unit isn't the expected unit",
+  unit_mismatch: "Unit isn't the expected unit, so GP rules can't apply",
   range_missing: "No reference range printed",
   range_unreadable: "Reference range couldn't be read",
 };
@@ -42,11 +42,19 @@ interface ValidatedBase {
   labFlagged: boolean;
 }
 
+/**
+ * The value and the printed range can be compared. The value and range come
+ * from the same row, so they share a unit even if we don't recognise the test.
+ * GP rules only apply when the test is recognised and the unit is the one the
+ * rule was set in.
+ */
 export interface CheckableResult extends ValidatedBase {
   status: "checked";
-  testTypeId: string;
   value: number;
   range: PrintedRange;
+  rulesApplicable: boolean;
+  /** Why rules can't apply, when they can't. */
+  limitation: Extract<CouldntCheckReason, "unknown_test" | "unit_mismatch"> | null;
 }
 
 export interface UncheckableResult extends ValidatedBase {
@@ -82,6 +90,6 @@ export interface Evaluation {
   outsideRange: Exclude<RangePosition, "inside"> | null;
   matchedRules: ActiveRule[];
   couldntCheck: CouldntCheckReason | null;
-  /** Rules on this test that couldn't be evaluated because the result couldn't be checked. */
+  /** Rules on this test that couldn't be evaluated. Their owners are told. */
   unevaluatedRules: ActiveRule[];
 }

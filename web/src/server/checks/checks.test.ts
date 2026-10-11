@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateResult, ruleMatches } from "./evaluate";
 import { planAlerts, type ClinicianAvailability } from "./routing";
 import type { ActiveRule, ExtractedResult, TestTypeRef } from "./types";
+import { namesMatch } from "./patient";
 import { isLabFlagged, normaliseUnit, validateResult } from "./validate";
 
 const TESTS: TestTypeRef[] = [
@@ -39,12 +40,9 @@ describe("validateResult", () => {
   });
 
   it.each([
-    [{ testName: "Magnesium" }, "unknown_test"],
     [{ value: "<0.1" }, "value_not_numeric"],
     [{ value: "see comment" }, "value_not_numeric"],
     [{ value: "4.6 H" }, "value_not_numeric"],
-    [{ unit: "mEq/L" }, "unit_mismatch"],
-    [{ unit: null }, "unit_mismatch"],
     [{ referenceRange: null }, "range_missing"],
     [{ referenceRange: "  " }, "range_missing"],
     [{ referenceRange: "see note" }, "range_unreadable"],
@@ -52,6 +50,15 @@ describe("validateResult", () => {
     const v = validateResult(result(overrides), TESTS);
     expect(v.status).toBe("couldnt_check");
     if (v.status === "couldnt_check") expect(v.reason).toBe(reason);
+  });
+
+  it.each([
+    [{ testName: "Magnesium" }, "unknown_test", null],
+    [{ unit: "mEq/L" }, "unit_mismatch", "K"],
+    [{ unit: null }, "unit_mismatch", "K"],
+  ] as const)("still checks the printed range for %j, but GP rules can't apply (%s)", (overrides, limitation, testTypeId) => {
+    const v = validateResult(result(overrides), TESTS);
+    expect(v).toMatchObject({ status: "checked", rulesApplicable: false, limitation, testTypeId });
   });
 
   it("treats micro sign, Greek mu, spacing and ² as the same unit spelling", () => {
@@ -109,6 +116,21 @@ describe("evaluateResult", () => {
   it("ignores rules for other tests", () => {
     const e = evaluateResult(validateResult(result({ value: "9" }), TESTS), [kRule({ testTypeId: "CREAT", threshold: 1 })]);
     expect(e.matchedRules).toEqual([]);
+  });
+
+  it("checks an unrecognised test against its printed range", () => {
+    const e = evaluateResult(validateResult(result({ testName: "Lipase", value: "90", unit: "U/L", referenceRange: "< 60" }), TESTS), []);
+    expect(e.outsideRange).toBe("above");
+    expect(e.couldntCheck).toBeNull();
+  });
+
+  it("can't apply a rule when the unit differs, and says so to the rule's owner", () => {
+    const e = evaluateResult(validateResult(result({ value: "9.9", unit: "mEq/L" }), TESTS), [kRule()]);
+    expect(e.matchedRules).toEqual([]);
+    expect(e.unevaluatedRules.map((r) => r.id)).toEqual(["r1"]);
+    expect(e.outsideRange).toBe("above");
+    const plans = planAlerts(e, "gp_a", new Map([["gp_a", { id: "gp_a", away: false, coveringClinicianId: null }]]));
+    expect(plans[0].reasons).toEqual(["outside_range", "couldnt_check"]);
   });
 
   it("still honours the lab flag when the value can't be checked", () => {
@@ -176,5 +198,19 @@ describe("planAlerts", () => {
     expect(plans).toEqual([
       { recipientId: "gp_c", originalId: "gp_a", reasons: ["outside_range", "gp_rule"], ruleIds: ["r1"], handoverUnavailable: false },
     ]);
+  });
+});
+
+describe("namesMatch", () => {
+  it.each([
+    ["Daniel Nguyen", "Daniel Nguyen", true],
+    ["NGUYEN, Daniel", "Daniel Nguyen", true],
+    ["Mr Daniel James Nguyen", "Daniel Nguyen", true],
+    ["Tom Fletcher", "Daniel Nguyen", false],
+    ["Daniel Fletcher", "Daniel Nguyen", false],
+    [null, "Daniel Nguyen", null],
+    ["  ", "Daniel Nguyen", null],
+  ] as const)("%j vs %j → %j", (onReport, filedAs, expected) => {
+    expect(namesMatch(onReport, filedAs)).toBe(expected);
   });
 });

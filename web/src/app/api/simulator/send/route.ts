@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       labName: built.report.labName,
       collectedAt: built.report.collectedAt.toISOString(),
       sourceRows: built.sourceRows,
+      sourcePatientName: built.report.patient.name,
       actor: "presenter",
     });
     return Response.json({ sourceMessageId, ...summary });

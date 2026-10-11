@@ -15,11 +15,7 @@ export function evaluateResult(result: ValidatedResult, rules: ActiveRule[]): Ev
 
   // The lab's own flag counts even when we can't check the value ourselves.
   const flagText = result.extracted.labFlag?.trim() || "none";
-  checks.push({
-    kind: "lab_flag",
-    outcome: result.labFlagged ? "triggered" : "clear",
-    detail: `Lab flag: ${flagText}`,
-  });
+  checks.push({ kind: "lab_flag", outcome: result.labFlagged ? "triggered" : "clear", detail: `Lab flag: ${flagText}` });
 
   if (result.status === "couldnt_check") {
     checks.push({ kind: "validation", outcome: "failed", detail: result.reason });
@@ -37,7 +33,11 @@ export function evaluateResult(result: ValidatedResult, rules: ActiveRule[]): Ev
     };
   }
 
-  checks.push({ kind: "validation", outcome: "clear", detail: "All fields valid" });
+  checks.push({
+    kind: "validation",
+    outcome: "clear",
+    detail: result.limitation ? `Range checked; ${result.limitation}` : "All fields valid",
+  });
 
   const position = positionInRange(result.value, result.range);
   checks.push({
@@ -47,7 +47,13 @@ export function evaluateResult(result: ValidatedResult, rules: ActiveRule[]): Ev
   });
 
   const matchedRules: ActiveRule[] = [];
+  const unevaluatedRules: ActiveRule[] = [];
   for (const rule of rulesForTest) {
+    if (!result.rulesApplicable) {
+      unevaluatedRules.push(rule);
+      checks.push({ kind: "rule", ruleId: rule.id, outcome: "skipped", detail: `Unit "${result.extracted.unit ?? "none"}" isn't the rule's unit` });
+      continue;
+    }
     const matched = ruleMatches(rule, result.value);
     if (matched) matchedRules.push(rule);
     checks.push({
@@ -64,6 +70,6 @@ export function evaluateResult(result: ValidatedResult, rules: ActiveRule[]): Ev
     outsideRange: position === "inside" ? null : position,
     matchedRules,
     couldntCheck: null,
-    unevaluatedRules: [],
+    unevaluatedRules,
   };
 }

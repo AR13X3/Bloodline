@@ -131,12 +131,21 @@ export interface AlertDetail extends AlertListItem {
     labComment: string | null;
     couldntCheckReason: CouldntCheckReason | null;
     couldntCheckLabel: string | null;
+    ruleLimitationLabel: string | null;
     collectedAt: string;
   };
   rangePosition: RangePosition | null;
   matchedRules: { id: string; direction: "above" | "below"; threshold: number; unit: string; ownerName: string }[];
   history: { collectedAt: string; value: number; labFlagged: boolean; isThis: boolean }[];
-  report: { id: string; labName: string; fileUrl: string | null; extractionSource: string | null; extractionNote: string | null };
+  report: {
+    id: string;
+    labName: string;
+    fileUrl: string | null;
+    extractionSource: string | null;
+    extractionNote: string | null;
+    nameOnReport: string | null;
+    nameMatches: boolean | null;
+  };
   checks: { kind: string; outcome: string; detail: string | null }[];
 }
 
@@ -148,15 +157,17 @@ export function getAlertDetail(db: DatabaseSync, alertId: string): AlertDetail |
   const extra = db
     .prepare(
       `SELECT r.id, r.test_type_id, r.value, r.range_raw, r.range_low, r.range_high, r.range_low_inclusive, r.range_high_inclusive,
-              r.lab_flagged, r.lab_comment, r.couldnt_check_reason, r.collected_at, a.rule_ids, a.patient_id,
-              rep.id AS report_id, rep.lab_name, rep.file_name, rep.extraction_source, rep.extraction_note
+              r.lab_flagged, r.lab_comment, r.couldnt_check_reason, r.rule_limitation, r.collected_at, a.rule_ids, a.patient_id,
+              rep.id AS report_id, rep.lab_name, rep.file_name, rep.extraction_source, rep.extraction_note,
+              rep.patient_name_on_report, rep.patient_name_matches
        FROM alerts a JOIN results r ON r.id = a.result_id JOIN reports rep ON rep.id = a.report_id WHERE a.id = ?`,
     )
     .get(alertId) as {
       id: string; test_type_id: string | null; value: number | null; range_raw: string | null; range_low: number | null; range_high: number | null;
       range_low_inclusive: number; range_high_inclusive: number; lab_flagged: number; lab_comment: string | null;
-      couldnt_check_reason: CouldntCheckReason | null; collected_at: string; rule_ids: string; patient_id: string;
+      couldnt_check_reason: CouldntCheckReason | null; rule_limitation: CouldntCheckReason | null; collected_at: string; rule_ids: string; patient_id: string;
       report_id: string; lab_name: string; file_name: string | null; extraction_source: string | null; extraction_note: string | null;
+      patient_name_on_report: string | null; patient_name_matches: number | null;
     };
 
   const rangePosition =
@@ -208,6 +219,7 @@ export function getAlertDetail(db: DatabaseSync, alertId: string): AlertDetail |
       labComment: extra.lab_comment,
       couldntCheckReason: extra.couldnt_check_reason,
       couldntCheckLabel: extra.couldnt_check_reason ? COULDNT_CHECK_LABELS[extra.couldnt_check_reason] : null,
+      ruleLimitationLabel: extra.rule_limitation ? COULDNT_CHECK_LABELS[extra.rule_limitation] : null,
       collectedAt: extra.collected_at,
     },
     rangePosition,
@@ -219,6 +231,8 @@ export function getAlertDetail(db: DatabaseSync, alertId: string): AlertDetail |
       fileUrl: extra.file_name ? `/api/reports/${extra.report_id}/file` : null,
       extractionSource: extra.extraction_source,
       extractionNote: extra.extraction_note,
+      nameOnReport: extra.patient_name_on_report,
+      nameMatches: extra.patient_name_matches === null ? null : extra.patient_name_matches === 1,
     },
     checks: checks.map((c) => ({ ...c })),
   };
@@ -365,6 +379,7 @@ export interface ReportView {
   requestingGp: { id: string; name: string };
   fileUrl: string | null;
   extraction: { source: string | null; model: string | null; costUsd: number | null; note: string | null };
+  patientCheck: { nameOnReport: string | null; matches: boolean | null };
   results: {
     id: string;
     testName: string;
@@ -375,6 +390,7 @@ export interface ReportView {
     labComment: string | null;
     checkStatus: string;
     couldntCheckLabel: string | null;
+    ruleLimitationLabel: string | null;
     checks: { kind: string; outcome: string; detail: string | null }[];
   }[];
   alerts: number;
@@ -391,12 +407,13 @@ export function getReport(db: DatabaseSync, reportId: string): ReportView | null
         id: string; source_message_id: string; origin: string; status: string; lab_name: string; received_at: string;
         patient_id: string; patient_name: string; requesting_clinician_id: string; gp_name: string; file_name: string | null;
         extraction_source: string | null; extraction_model: string | null; extraction_cost_usd: number | null; extraction_note: string | null;
+        patient_name_on_report: string | null; patient_name_matches: number | null;
       }
     | undefined;
   if (!r) return null;
   const results = (db.prepare("SELECT * FROM results WHERE report_id = ? ORDER BY created_at, rowid").all(reportId) as {
     id: string; test_name_raw: string; value_raw: string; unit_raw: string | null; range_raw: string | null; lab_flag_raw: string | null;
-    lab_comment: string | null; check_status: string; couldnt_check_reason: CouldntCheckReason | null;
+    lab_comment: string | null; check_status: string; couldnt_check_reason: CouldntCheckReason | null; rule_limitation: CouldntCheckReason | null;
   }[]).map((x) => ({
     id: x.id,
     testName: x.test_name_raw,
@@ -407,6 +424,7 @@ export function getReport(db: DatabaseSync, reportId: string): ReportView | null
     labComment: x.lab_comment,
     checkStatus: x.check_status,
     couldntCheckLabel: x.couldnt_check_reason ? COULDNT_CHECK_LABELS[x.couldnt_check_reason] : null,
+    ruleLimitationLabel: x.rule_limitation ? COULDNT_CHECK_LABELS[x.rule_limitation] : null,
     checks: db.prepare("SELECT kind, outcome, detail FROM checks WHERE result_id = ? ORDER BY id").all(x.id) as { kind: string; outcome: string; detail: string | null }[],
   }));
   const { n } = db.prepare("SELECT COUNT(*) AS n FROM alerts WHERE report_id = ?").get(reportId) as { n: number };
@@ -421,6 +439,7 @@ export function getReport(db: DatabaseSync, reportId: string): ReportView | null
     requestingGp: { id: r.requesting_clinician_id, name: r.gp_name },
     fileUrl: r.file_name ? `/api/reports/${r.id}/file` : null,
     extraction: { source: r.extraction_source, model: r.extraction_model, costUsd: r.extraction_cost_usd, note: r.extraction_note },
+    patientCheck: { nameOnReport: r.patient_name_on_report, matches: r.patient_name_matches === null ? null : r.patient_name_matches === 1 },
     results,
     alerts: n,
   };
@@ -437,7 +456,7 @@ export interface DashboardFeed {
   stats: { reports: number; alerts: number; unseen: number; couldntCheck: number; aiCostUsd: number; aiReads: number; cacheHits: number };
   liveMessages: boolean;
   providers: { ai: boolean; email: boolean; twilio: boolean };
-  reports: { id: string; receivedAt: string; patientName: string; gpName: string; origin: string; status: string; extractionSource: string | null; results: number; alerts: number }[];
+  reports: { id: string; receivedAt: string; patientName: string; gpName: string; origin: string; status: string; extractionSource: string | null; nameMatches: boolean | null; results: number; alerts: number }[];
   alerts: AlertListItem[];
   notifications: { id: string; createdAt: string; channel: string; status: string; recipient: string | null; detail: string | null; gpName: string }[];
   audit: { id: number; at: string; actor: string; action: string; entityType: string | null; detail: string | null }[];
@@ -459,15 +478,27 @@ export function getDashboardFeed(db: DatabaseSync): DashboardFeed {
     providers: { ai: aiConfigured(), email: emailConfigured(), twilio: twilioConfigured() },
     reports: (db
       .prepare(
-        `SELECT rep.id, rep.received_at, rep.origin, rep.status, rep.extraction_source, p.display_name AS patient_name, c.name AS gp_name,
+        `SELECT rep.id, rep.received_at, rep.origin, rep.status, rep.extraction_source, rep.patient_name_matches, p.display_name AS patient_name, c.name AS gp_name,
                 (SELECT COUNT(*) FROM results r WHERE r.report_id = rep.id) AS results,
                 (SELECT COUNT(*) FROM alerts a WHERE a.report_id = rep.id) AS alerts
          FROM reports rep JOIN patients p ON p.id = rep.patient_id JOIN clinicians c ON c.id = rep.requesting_clinician_id
          WHERE rep.origin != 'history' ORDER BY rep.received_at DESC LIMIT 20`,
       )
-      .all() as { id: string; received_at: string; origin: string; status: string; extraction_source: string | null; patient_name: string; gp_name: string; results: number; alerts: number }[]).map(
-      (r) => ({ id: r.id, receivedAt: r.received_at, patientName: r.patient_name, gpName: r.gp_name, origin: r.origin, status: r.status, extractionSource: r.extraction_source, results: r.results, alerts: r.alerts }),
-    ),
+      .all() as {
+        id: string; received_at: string; origin: string; status: string; extraction_source: string | null; patient_name_matches: number | null;
+        patient_name: string; gp_name: string; results: number; alerts: number;
+      }[]).map((r) => ({
+      id: r.id,
+      receivedAt: r.received_at,
+      patientName: r.patient_name,
+      gpName: r.gp_name,
+      origin: r.origin,
+      status: r.status,
+      extractionSource: r.extraction_source,
+      nameMatches: r.patient_name_matches === null ? null : r.patient_name_matches === 1,
+      results: r.results,
+      alerts: r.alerts,
+    })),
     alerts: (db.prepare(`${ALERT_SELECT} ORDER BY a.created_at DESC LIMIT 30`).all() as unknown as AlertRow[]).map(toAlertItem),
     notifications: (db
       .prepare(
