@@ -1,10 +1,9 @@
-import * as Notifications from "expo-notifications";
 import { Redirect, router, Tabs } from "expo-router";
 import { Bell, Settings, Users } from "lucide-react-native";
 import { useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FreshAlertsContext, useAlerts, useNewAlertNotifier } from "@/hooks";
-import { prepareNotifications } from "@/notifications";
+import { onNotificationTap, prepareNotifications } from "@/notifications";
 import { useSession } from "@/session";
 import { colors, fonts } from "@/theme";
 
@@ -19,10 +18,7 @@ export default function TabsLayout() {
     if (!clinicianId) return;
     prepareNotifications().catch(() => {});
     // Tapping a notification opens the alert it was about.
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const alertId = response.notification.request.content.data?.alertId;
-      if (typeof alertId === "string") router.push({ pathname: "/alert/[id]", params: { id: alertId } });
-    });
+    const sub = onNotificationTap((alertId) => router.push({ pathname: "/alert/[id]", params: { id: alertId } }));
     return () => sub.remove();
   }, [clinicianId]);
 
