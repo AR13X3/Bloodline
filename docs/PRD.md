@@ -49,7 +49,7 @@ If BloodLine can't check a result cleanly, it tells the GP. It never stays silen
 
 > "We're not making a decision, it's just letting the GP know in case something is wrong." — the founders
 
-**Tagline:** "The lab makes sure the result arrives. BloodLine makes sure someone acts on it." (See Q31: this wording may overstate what the product does.)
+**Tagline:** "The lab makes sure the result arrives. BloodLine makes sure the GP knows." (Changed from "makes sure someone acts on it", which overstated what the product does; see Q31 and §17.5.)
 
 **The demo.** A 12-hour hackathon build for investors. Everything runs on the presenter's laptop. A web page labelled "Practice system (simulated)" sends synthetic lab report PDFs. An AI model transcribes each PDF into fields. Plain, deterministic code checks those fields. The GP's Android app shows the alert. Email, SMS and a voice call tell the GP to open the app, with no patient details. The GP reviews the result next to the original report and taps "Seen". A web dashboard shows every check, message and action.
 
@@ -538,7 +538,7 @@ Respect reduced-motion settings: Motion's `useReducedMotion` on web, Reanimated'
 2. The GP app fetches alerts and reports through the Cloudflare tunnel.
 3. The content-free nudge goes out through Resend (email) and Twilio (SMS, voice).
 
-The suggested pitch line "nothing leaves the laptop except the alert nudge" is not accurate as worded (Q30). A safer version: "Everything is stored on the laptop. The only things sent out are the synthetic report for AI reading, the GP's own app view, and a nudge with no patient details."
+The suggested pitch line "nothing leaves the laptop except the alert nudge" is not accurate as worded, so it has been dropped (Q30). Use instead: "No patient details in any notification. Demo data is fully synthetic."
 
 ### 10.2 Architecture diagram
 
@@ -603,6 +603,8 @@ flowchart TD
 ### 10.4 Data model (SQLite)
 
 Founders' proposed tables. Items marked **(proposed addition)** are suggestions from this PRD.
+
+> **Implemented (2026-10-11):** the schema now lives in `web/src/server/db/schema.ts`. It adds an `extraction_cache` table and a `checks` table, moves the unique source message id to `reports`, and records each alert's recipient and original GP. See §17.5.
 
 | Table | Key fields | Notes |
 |---|---|---|
@@ -1116,6 +1118,33 @@ Timing is TBD.
 | Q29 | What is the total number of Australian general practices? |
 | Q30 | The pitch line "nothing leaves the laptop except the alert nudge" is not accurate. Reports go to OpenRouter, and the app reaches the laptop through Cloudflare's tunnel. Agree a reworded line (§10.1). |
 | Q31 | The tagline says BloodLine "makes sure someone acts on it". The product only notifies. It does not ensure action. Under TGA intended-purpose and advertising rules, wording matters. Should the tagline change? |
+
+### 17.5 Decisions made during the build (2026-10-11)
+
+These resolve open questions above. They are demo defaults and can be revisited.
+
+| Question | Decision |
+|---|---|
+| Q1, Q2 | Lab-flag, range and couldn't-check alerts go to the requesting GP on the report. A rule match goes to the rule's owner. One alert per result per recipient, listing every reason that applies. |
+| Q3 | GPs can see every rule for a patient, but can only change or end their own. |
+| Q4, Q5 | Two-sided printed ranges include their limits (a value on the limit is inside). One-sided ranges keep the operator the lab printed: "> 59" excludes 59, ">= 60" includes 60. A GP's "above X" means strictly above X; "below X" means strictly below. The rule summary says so. |
+| Q6 | When setting a rule, show that patient's latest printed range for the test. If there is none, show the illustrative range, clearly labelled "illustrative". |
+| Q7 | Couldn't-check notices use the same channels as other alerts. |
+| Q8 | Handover goes one step only. If the covering colleague is also away, the alert goes to the original GP and is flagged on the dashboard. |
+| Q10, Q11 | Amended reports are out of scope for the demo. A new source message id is a new report, so the same PDF sent again with a new id alerts again. |
+| Q12 | A lab flag counts as "flagged" when it is present and is not "N" or "Normal". |
+| Q13 | One message per alert: "You have 1 result to review." |
+| Q14 | The unique source message id belongs to the report, not to each result. |
+| Q15 | The AI extraction cache has its own table (`extraction_cache`), which "Reset demo" does not clear. |
+| Q16 | A dedicated `checks` table logs every check (validation, lab flag, range, each rule), whether or not it alerts. |
+| Q17 | The simulator and "Reset demo" only accept requests from the laptop itself, not through the tunnel. |
+| Q21 | Generated PDFs use a fixed creation date, so the same synthetic report always has the same hash. |
+| Q27 | Resolved with RACGP Criterion GP2.2 [S36]. |
+| Q30 | Pitch line replaced: "No patient details in any notification. Demo data is fully synthetic." |
+| Q31 | Tagline changed to "The lab makes sure the result arrives. BloodLine makes sure the GP knows." |
+| — | The demo GP's email and mobile come from `DEMO_GP_EMAIL` and `DEMO_GP_MOBILE` in `.env.local`, so they survive "Reset demo". |
+| — | Voice calls can play a pre-recorded message from `VOICE_MESSAGE_URL` (e.g. hosted on Twilio Assets), twice. Without it, calls use a computer voice. |
+| — | Twilio status at 2026-10-11: still a trial account; no phone numbers or verified caller IDs found under the configured credentials. To resolve before the demo (Q20). |
 
 ---
 
