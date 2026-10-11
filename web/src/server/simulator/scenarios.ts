@@ -105,7 +105,7 @@ export interface BuiltScenario {
   report: SyntheticReport;
   patientId: string;
   requestingClinicianId: string;
-  /** What the simulator printed, used only as a labelled fallback if AI reading is unavailable. */
+  /** What the simulator printed, used only as a labelled fallback if OCR is unavailable. */
   sourceRows: ExtractedResult[];
 }
 

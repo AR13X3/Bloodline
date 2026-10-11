@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>BloodLine Pitch Numbers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Geist+Mono:wght@400;500&family=Urbanist:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+<style>
+/* Layout: one document sheet, read top to bottom as the pitch argues it: why now, why the
+   gap is open, market size, the money (controls beside results on wide screens), what a
+   practice gets back, competitors, sources. */
+:root {
+  --bg: #f1f4f6;
+  --surface: #ffffff;
+  --ink: #123441;
+  --muted: #556c77;
+  --line: #dde6ea;
+  --line-strong: #c3d1d7;
+  --brand: #0f3b4b;
+  --brand-soft: #d7e9ef;
+  --link: #0b6a78;
+  --amber: #7a5212;
+  --amber-soft: #fbf0dc;
+  --amber-line: #d99a35;
+  --green: #1f6e4d;
+  --green-soft: #e1f1ea;
+  --bar-1: #c9e2ea;
+  --bar-2: #8ec2d1;
+  --bar-3: #0f3b4b;
+  --s-revenue: #008aa3;
+  --s-costs: #eb6834;
+  --font-display: "Urbanist", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c171c; --surface: #112129; --ink: #e1ebef; --muted: #93a8b2; --line: #20363f; --line-strong: #2e4a55;
+    --brand: #a3d6e4; --brand-soft: #173944; --link: #7fcbd8; --amber: #f0c27e; --amber-soft: #33270f; --amber-line: #b8822e;
+    --green: #7fd3ad; --green-soft: #10302a; --bar-1: #1f4450; --bar-2: #2f6474; --bar-3: #a3d6e4;
+    --s-revenue: #2aa3b5; --s-costs: #d95926; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c171c; --surface: #112129; --ink: #e1ebef; --muted: #93a8b2; --line: #20363f; --line-strong: #2e4a55;
+  --brand: #a3d6e4; --brand-soft: #173944; --link: #7fcbd8; --amber: #f0c27e; --amber-soft: #33270f; --amber-line: #b8822e;
+  --green: #7fd3ad; --green-soft: #10302a; --bar-1: #1f4450; --bar-2: #2f6474; --bar-3: #a3d6e4;
+  --s-revenue: #2aa3b5; --s-costs: #d95926; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.65 var(--font-body); }
+[id] { scroll-margin-top: 1.25rem; }
+a { color: var(--link); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
+p { margin: 0; }
+code { font: 0.86em/1.4 var(--font-mono); }
+.skip { position: absolute; left: -999px; top: 0; }
+.skip:focus { left: 1rem; top: 1rem; z-index: 10; background: var(--surface); padding: 0.5rem 0.75rem; border-radius: 8px; }
+
+.page { max-width: 70rem; margin: 0 auto; padding-inline: clamp(1rem, 3vw, 2rem); padding-block: 2rem 4rem; }
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.25rem, 4vw, 3.5rem); display: flex; flex-direction: column; gap: 3.5rem; }
+section { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+section + section { padding-top: 3rem; border-top: 1px solid var(--line); }
+.prose { max-width: 66ch; }
+
+/* Header */
+.head { display: flex; flex-direction: column; gap: 1.4rem; }
+.brand { display: flex; align-items: center; gap: 0.9rem; }
+.logo { width: 3rem; height: 3rem; flex: none; }
+.logo-bar { fill: var(--brand); }
+.logo-accent { fill: #1e9e5e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-accent { fill: #56db8b; } }
+:root[data-theme="dark"] .logo-accent { fill: #56db8b; }
+.eyebrow { margin: 0 0 0.35rem; font: 700 0.75rem/1.2 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 700 clamp(2.1rem, 5.5vw, 3.1rem)/1.05 var(--font-display); letter-spacing: -0.02em; color: var(--brand); text-wrap: balance; }
+.lede { max-width: 60ch; font-size: 1.1875rem; line-height: 1.55; }
+.callout { max-width: 66ch; padding: 0.9rem 1.1rem; border: 1px solid var(--amber-line); border-radius: 12px; background: var(--amber-soft); font-size: 0.96875rem; }
+.jump { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.jump a { display: inline-block; padding: 0.4rem 0.8rem; border-radius: 99px; background: var(--bg); color: var(--ink); text-decoration: none; font: 600 0.875rem/1.2 var(--font-display); }
+.jump a:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
+
+h2 { margin: 0; font: 700 clamp(1.6rem, 3.2vw, 2.05rem)/1.15 var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+h3 { margin: 0.75rem 0 0; font: 700 1.25rem/1.3 var(--font-display); text-wrap: balance; }
+.kicker { font: 700 0.75rem/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.note { font-size: 0.875rem; color: var(--muted); max-width: 70ch; }
+sup.cite { font: 500 0.6875rem/1 var(--font-mono); vertical-align: 0.45em; margin-left: 0.1em; }
+sup.cite a { text-decoration: none; }
+.tag { display: inline-block; padding: 0.25em 0.55em; border-radius: 99px; background: var(--amber-soft); color: var(--amber); font: 700 0.6875rem/1 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; vertical-align: 0.15em; white-space: nowrap; }
+
+/* Cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr)); gap: 0.75rem; }
+.card { min-width: 0; display: flex; flex-direction: column; gap: 0.55rem; padding: 1.1rem 1.15rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.card h4 { margin: 0; font: 700 1.0625rem/1.35 var(--font-display); }
+.card p, .card li { font-size: 0.9375rem; line-height: 1.55; }
+.card ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.card .gap { color: var(--muted); }
+.date { align-self: flex-start; padding: 0.25rem 0.55rem; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font: 500 0.75rem/1.2 var(--font-mono); color: var(--muted); }
+.figure { font: 700 1.75rem/1 var(--font-display); color: var(--brand); font-variant-numeric: tabular-nums; }
+
+/* Why the gap is open */
+.reasons { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 0 2rem; }
+.reasons li { min-width: 0; padding: 1rem 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 0.35rem; }
+.reasons h4 { margin: 0; font: 700 1.0625rem/1.35 var(--font-display); }
+.reasons p { font-size: 0.9375rem; line-height: 1.55; }
+
+/* Market bars */
+.market { display: flex; flex-direction: column; gap: 1rem; }
+.mrow { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 0.4rem 1.25rem; align-items: center; }
+.mlabel b { display: block; font: 700 1rem/1.3 var(--font-display); }
+.mlabel span { font-size: 0.8125rem; color: var(--muted); line-height: 1.4; }
+.mtrack { position: relative; height: 2.25rem; border-radius: 6px; background: var(--bg); }
+.mfill { position: absolute; inset: 0 auto 0 0; min-width: 3px; border-radius: 0 4px 4px 0; transition: width 0.25s ease; }
+.mrow:nth-child(1) .mfill { background: var(--bar-1); }
+.mrow:nth-child(2) .mfill { background: var(--bar-2); }
+.mrow:nth-child(3) .mfill { background: var(--bar-3); }
+.mvalue { position: absolute; top: 50%; transform: translateY(-50%); font: 700 0.9375rem/1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+@media (max-width: 640px) { .mrow { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .mfill { transition: none; } }
+
+/* Model */
+.model { display: grid; grid-template-columns: minmax(0, 18.5rem) minmax(0, 1fr); gap: 1.5rem 2rem; align-items: start; }
+@media (max-width: 880px) { .model { grid-template-columns: minmax(0, 1fr); } }
+.controls { display: flex; flex-direction: column; gap: 1.5rem; padding: 1.1rem 1.15rem 1.25rem; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.controls fieldset { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-direction: column; gap: 1.05rem; }
+.controls fieldset + fieldset { padding-top: 1.25rem; border-top: 1px solid var(--line); }
+.controls legend { padding: 0; margin-bottom: 0.9rem; }
+.seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { padding: 0.45rem 0.5rem; border-radius: 7px; text-align: center; white-space: nowrap; cursor: pointer; font: 600 0.8125rem/1.2 var(--font-display); color: var(--muted); }
+.seg input:checked + label { background: var(--brand); color: var(--surface); }
+.seg input:focus-visible + label { outline: 2px solid var(--link); outline-offset: 1px; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; }
+.field label { font: 600 0.875rem/1.3 var(--font-display); }
+.field output { font: 500 0.9375rem/1 var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.field input[type="range"] { width: 100%; margin: 0; accent-color: var(--brand); }
+.field .hint { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+.result { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem 1.5rem; }
+.stat { min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.stat b { font: 700 clamp(1.7rem, 4vw, 2.2rem)/1.05 var(--font-display); color: var(--brand); font-variant-numeric: tabular-nums; }
+.stat span { font: 600 0.875rem/1.3 var(--font-display); color: var(--muted); }
+.bep { font-size: 0.9375rem; padding: 0.75rem 0.9rem; border-radius: 10px; background: var(--bg); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; font: 600 0.875rem/1.2 var(--font-display); }
+.legend li { display: inline-flex; align-items: center; gap: 0.45rem; }
+.sw { width: 0.85rem; height: 0.85rem; border-radius: 3px; }
+.sw-revenue { background: var(--s-revenue); }
+.sw-costs { background: var(--s-costs); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: var(--line-strong); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font: 500 11px var(--font-mono); }
+.chart .xlab { fill: var(--muted); font: 600 12px var(--font-display); }
+.chart .b-revenue { fill: var(--s-revenue); }
+.chart .b-costs { fill: var(--s-costs); }
+.chart .vlabel { fill: var(--ink); font: 700 12px var(--font-display); }
+.chart .hit { fill: transparent; }
+.chart .hit:focus { outline: none; }
+.focus-ring { fill: none; stroke: transparent; stroke-width: 1; pointer-events: none; }
+.chart .hit:focus-visible + .focus-ring, .chart .hit:hover + .focus-ring { stroke: var(--line-strong); }
+.tip { position: absolute; z-index: 2; min-width: 12rem; padding: 0.6rem 0.75rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); font-size: 0.8125rem; line-height: 1.45; pointer-events: none; }
+.tip b { font: 700 0.875rem/1.3 var(--font-display); }
+.tip dl { display: grid; grid-template-columns: auto auto; gap: 0.1rem 0.9rem; margin: 0.3rem 0 0; }
+.tip dt { color: var(--muted); display: flex; align-items: center; gap: 0.35rem; }
+.tip dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; line-height: 1.5; }
+caption { padding: 0.75rem 0.9rem 0; text-align: left; }
+th { padding: 0.65rem 0.9rem; text-align: left; vertical-align: bottom; background: var(--bg); border-bottom: 1px solid var(--line); font: 700 0.6875rem/1.3 var(--font-display); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+td { padding: 0.65rem 0.9rem; vertical-align: top; border-top: 1px solid var(--line); }
+tbody tr:first-child td { border-top: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td:first-child { font-weight: 700; }
+table.wide { min-width: 44rem; }
+table.years { min-width: 34rem; font-size: 0.875rem; }
+table.years td, table.years th { padding-inline: 0.7rem; }
+table.matrix { min-width: 50rem; }
+.matrix td:not(:first-child), .matrix th:not(:first-child) { text-align: center; }
+.matrix th.us, .matrix td.us { background: var(--brand-soft); }
+.mark { display: inline-flex; align-items: center; gap: 0.3rem; font: 600 0.75rem/1 var(--font-display); white-space: nowrap; }
+.mark i { width: 0.6rem; height: 0.6rem; border-radius: 50%; flex: none; }
+.m-yes { color: var(--green); } .m-yes i { background: var(--green); }
+.m-part { color: var(--amber); } .m-part i { background: var(--amber-line); }
+.m-none { color: var(--muted); font-weight: 500; } .m-none i { background: transparent; border: 1.5px solid var(--line-strong); }
+.m-no { color: var(--muted); font-weight: 500; } .m-no i { background: var(--line-strong); }
+.mark small { display: block; font: 400 0.6875rem/1.3 var(--font-body); color: var(--muted); margin-top: 0.2rem; white-space: normal; }
+
+ul.plain { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; max-width: 72ch; }
+li::marker { color: var(--muted); }
+.position { padding: 1.1rem 1.2rem; border-radius: 14px; background: var(--brand-soft); max-width: 72ch; }
+.sources { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.875rem; }
+.sources li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: 0.3rem; }
+.sources li span:first-child { font: 500 0.75rem/1.6 var(--font-mono); color: var(--muted); }
+.sources a { overflow-wrap: anywhere; }
+.foot { font-size: 0.8125rem; color: var(--muted); }
+@media print { .jump, .controls { display: none; } .model { display: block; } .sheet { border: 0; padding: 0; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#why-now">Skip to the content</a>
+<div class="page">
+<main class="sheet">
+
+  <header class="head">
+    <div class="brand">
+      <svg class="logo" viewBox="0 4 35 34.5" aria-hidden="true"><rect x="0" y="10.5" width="3" height="10.5" class="logo-bar"/><rect x="4" y="7" width="3" height="18.5" class="logo-bar"/><rect x="8" y="4" width="3" height="27" class="logo-bar"/><rect x="12" y="5.5" width="3" height="30" class="logo-bar"/><rect x="16" y="9" width="3" height="29.5" class="logo-bar"/><rect x="20" y="5.5" width="3" height="30" class="logo-bar"/><rect x="24" y="4" width="3" height="27" class="logo-accent"/><rect x="28" y="7" width="3" height="18.5" class="logo-bar"/><rect x="32" y="10.5" width="3" height="10.5" class="logo-bar"/></svg>
+      <div><p class="eyebrow">BloodLine · for the pitch</p><h1>Market, competitors and money</h1></div>
+    </div>
+    <p class="lede">Why the timing is right, why the gap is still open, how big the market is, what BloodLine would earn and spend over five years, and what a practice gets back.</p>
+    <p class="callout"><strong>Scenarios, not forecasts.</strong> Revenue and cost figures come from the assumptions shown beside them, which you can change. Figures marked “estimate” are ours. Everything else cites a public source, checked on 11 October 2026. Companion to PRD §14.</p>
+    <nav aria-label="On this page"><ul class="jump">
+      <li><a href="#why-now">Why now</a></li>
+      <li><a href="#gap">Why no one has built it</a></li>
+      <li><a href="#market">Market size</a></li>
+      <li><a href="#money">Revenue and costs</a></li>
+      <li><a href="#practice">For the practice</a></li>
+      <li><a href="#competitors">Competitors</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ul></nav>
+  </header>
+
+  <section id="why-now" aria-labelledby="why-now-h">
+    <h2 id="why-now-h">Why now</h2>
+    <div class="cards">
+      <article class="card">
+        <span class="date">1 July 2026</span>
+        <h4>Patients can see results first</h4>
+        <p>Pathology and imaging reports now go to My Health Record by default, mostly without the old 7-day delay.<sup class="cite"><a href="#src-7">7</a></sup> A patient may see a result before anyone at the practice has acted on it.</p>
+      </article>
+      <article class="card">
+        <span class="date">26 August 2026</span>
+        <h4>Follow-up is an accreditation standard</h4>
+        <p>The RACGP’s new 6th edition Standards keep a dedicated criterion for follow-up systems, CG6.<sup class="cite"><a href="#src-8">8</a>,<a href="#src-9">9</a></sup> Accreditation is a condition of PIP QI payments.<sup class="cite"><a href="#src-10">10</a></sup></p>
+      </article>
+      <article class="card">
+        <span class="date">Late 2025</span>
+        <h4>Labs have started texting doctors</h4>
+        <p>Australian Clinical Labs texts doctors about high-risk results and asks them to confirm, citing the Medical Board’s expectations.<sup class="cite"><a href="#src-11">11</a></sup> It covers one lab, judged by that lab’s own criteria.</p>
+      </article>
+      <article class="card">
+        <span class="date">2019 → 2024</span>
+        <h4>Fewer GPs for each patient</h4>
+        <p>Full-time equivalent GPs per 100,000 people fell from 117 to 113.<sup class="cite"><a href="#src-2">2</a></sup> Each GP covers more patients, and more results.</p>
+      </article>
+      <article class="card">
+        <span class="date">Halo Connect</span>
+        <h4>One integration reaches most practices</h4>
+        <p>Halo Connect is the only connection method for Bp Omni, and Bp Premier integrations are moving to it.<sup class="cite"><a href="#src-31">31</a>,<a href="#src-32">32</a></sup> Best Practice runs in 75.9% of practices.<sup class="cite"><a href="#src-4">4</a></sup></p>
+      </article>
+      <article class="card">
+        <span class="date">AU Core FHIR</span>
+        <h4>Result data is standardising</h4>
+        <p>Australia’s core FHIR standard now defines a profile for pathology results.<sup class="cite"><a href="#src-36">36</a></sup> Structured values become the main path, with OCR as the fallback.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="gap" aria-labelledby="gap-h">
+    <h2 id="gap-h">Why no one has built this yet</h2>
+    <p class="prose">We found adjacent products, not a direct competitor (see <a href="#competitors">Competitors</a>). These are the likely reasons.</p>
+    <ul class="reasons">
+      <li><h4>Access is gated</h4><p>Results sit inside practice software. Best Practice grants partner access only after a stringent review,<sup class="cite"><a href="#src-30">30</a></sup> Halo Connect supports only approved partners,<sup class="cite"><a href="#src-33">33</a></sup> and MedicalDirector has no public developer portal.<sup class="cite"><a href="#src-34">34</a></sup></p></li>
+      <li><h4>Each player sees part of the problem</h4><p>A lab sees only its own results.<sup class="cite"><a href="#src-11">11</a></sup> Patient-messaging tools act after the GP has decided.<sup class="cite"><a href="#src-17">17</a></sup> The practice software shows every result, but only when the GP opens the inbox.<sup class="cite"><a href="#src-13">13</a></sup></p></li>
+      <li><h4>Regulation and liability put builders off <span class="tag">Our view</span></h4><p>Software that flags results may be a medical device, and the exemption for decision-support software needs specialist advice.<sup class="cite"><a href="#src-35">35</a></sup> A product that promises alerts also takes on the risk of missing one.</p></li>
+      <li><h4>The market looked small to large vendors <span class="tag">Our view</span></h4><p>About <span data-out="tam-inline">$29.1M</span> a year across every Australian GP is too small for large software companies to prioritise. That leaves room for a focused product.</p></li>
+      <li><h4>The single integration route is new</h4><p>With Halo Connect, integrators no longer build and support their own agent in every practice.<sup class="cite"><a href="#src-42">42</a></sup> One partnership now reaches most of the market.</p></li>
+    </ul>
+  </section>
+
+  <section id="market" aria-labelledby="market-h">
+    <h2 id="market-h">How big the market is</h2>
+    <p class="prose">Each bar is a year of subscription revenue at the price set in the model below (<span data-out="price-inline">$60</span> per GP per month). All three share one scale.</p>
+    <div class="market" role="list">
+      <div class="mrow" role="listitem">
+        <div class="mlabel"><b>Every Australian GP</b><span>40,375 GPs in 2024<sup class="cite"><a href="#src-1">1</a></sup></span></div>
+        <div class="mtrack"><div class="mfill" data-bar="tam" style="width:100%"></div><span class="mvalue" data-out="tam" style="left:0.75rem">$29.1M</span></div>
+      </div>
+      <div class="mrow" role="listitem">
+        <div class="mlabel"><b>Practices on Best Practice</b><span>75.9% of practices,<sup class="cite"><a href="#src-4">4</a></sup> our first integration route (estimate: GPs spread evenly across software)</span></div>
+        <div class="mtrack"><div class="mfill" data-bar="sam" style="width:75.9%"></div><span class="mvalue" data-out="sam" style="left:0.75rem">$22.1M</span></div>
+      </div>
+      <div class="mrow" role="listitem">
+        <div class="mlabel"><b>Year-5 scenario</b><span data-out="som-basis">2,400 practices from the model below</span></div>
+        <div class="mtrack"><div class="mfill" data-bar="som" style="width:29.7%"></div><span class="mvalue" data-out="som" style="left:calc(29.7% + 0.6rem)">$8.64M</span></div>
+      </div>
+    </div>
+    <p class="note">Australia has about 8,100 general practices (estimate: in 2019, 6,825 accredited practices made up 83.8% of all practices<sup class="cite"><a href="#src-3">3</a></sup>). That is about 5 GPs per practice. 29,976 of the 40,375 GPs are full-time equivalents.<sup class="cite"><a href="#src-1">1</a></sup></p>
+
+    <h3>Beyond Australia</h3>
+    <p class="prose">The Australian ceiling is small for venture capital, so the expansion story matters.</p>
+    <div class="cards">
+      <article class="card">
+        <span class="kicker">England</span>
+        <span class="figure" data-out="england">$28.7M</span>
+        <p>39,918 fully qualified GPs in December 2025<sup class="cite"><a href="#src-5">5</a></sup>, at the same price per GP. About the size of Australia again.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">New Zealand</span>
+        <span class="figure">≈ 6,000</span>
+        <p>Members of the GP college, including registrars and rural hospital doctors.<sup class="cite"><a href="#src-6">6</a></sup></p>
+      </article>
+      <article class="card">
+        <span class="kicker">More report types</span>
+        <span class="figure">Not sized</span>
+        <p>Imaging reports, referrals, and hospital results still pending at discharge. The same checks apply to any report with a printed range.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="money" aria-labelledby="money-h">
+    <h2 id="money-h">Revenue, costs and break-even</h2>
+    <p class="prose">Year 1 loses money in every scenario: a handful of paying practices can’t cover a team. The questions for investors are how much BloodLine needs to raise and when it breaks even. Pick a scenario, then change the assumptions.</p>
+    <div class="model">
+      <form class="controls" id="controls" aria-label="Model assumptions">
+        <fieldset>
+          <legend class="kicker">Revenue</legend>
+          <div class="field">
+            <span id="scenario-label" style="font: 600 0.875rem/1.3 var(--font-display)">Scenario</span>
+            <div class="seg" role="radiogroup" aria-labelledby="scenario-label">
+              <input type="radio" name="scenario" id="sc-lean" value="lean" checked><label for="sc-lean">Lean plan</label>
+              <input type="radio" name="scenario" id="sc-base" value="base"><label for="sc-base">Base</label>
+              <input type="radio" name="scenario" id="sc-conservative" value="conservative"><label for="sc-conservative">Conservative</label>
+              <input type="radio" name="scenario" id="sc-ambitious" value="ambitious"><label for="sc-ambitious">Ambitious</label>
+            </div>
+            <span class="hint" id="preset-note">2,400 practices by Year 5 (≈ 30%) at $60 per GP, with a 6-person core team and one support person per 200 practices.</span>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="in-y5">Practices by Year 5</label><output for="in-y5" id="out-y5">2,400</output></div>
+            <input type="range" id="in-y5" min="100" max="4000" step="50" value="2400">
+            <span class="hint" id="hint-y5">≈ 30% of Australian practices</span>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="in-price">Price per GP per month</label><output for="in-price" id="out-price">$60</output></div>
+            <input type="range" id="in-price" min="30" max="150" step="5" value="60">
+            <span class="hint">All scenarios use $60, the PRD’s price hypothesis (H1). HotDoc charges about $81 per doctor.<sup class="cite"><a href="#src-18">18</a></sup></span>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="in-gps">GPs per practice</label><output for="in-gps" id="out-gps">5</output></div>
+            <input type="range" id="in-gps" min="3" max="10" step="0.5" value="5">
+            <span class="hint">40,375 GPs across about 8,100 practices.</span>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend class="kicker">Costs (estimates)</legend>
+          <div class="field">
+            <div class="field-top"><label for="in-core">Core team by Year 5</label><output for="in-core" id="out-core">6 people</output></div>
+            <input type="range" id="in-core" min="4" max="20" step="1" value="6">
+            <span class="hint">Engineering, product, clinical safety and regulatory. Grows 30%, 50%, 70%, 85%, 100% of this by year.</span>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="in-fte">Cost per person per year</label><output for="in-fte" id="out-fte">$165k</output></div>
+            <input type="range" id="in-fte" min="110000" max="250000" step="5000" value="165000">
+            <span class="hint">Including super and on-costs. Sydney full-stack developers earn about $100–130k base.<sup class="cite"><a href="#src-39">39</a></sup></span>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="in-per">Practices per customer-team member</label><output for="in-per" id="out-per">200</output></div>
+            <input type="range" id="in-per" min="50" max="400" step="10" value="200">
+            <span class="hint">Sales, onboarding and support, hired as practices go live.</span>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="in-run">Running cost per practice per month</label><output for="in-run" id="out-run">$70</output></div>
+            <input type="range" id="in-run" min="20" max="200" step="5" value="70">
+            <span class="hint">Halo Connect fee (a $50 placeholder; not published), SMS and calls (about $8)<sup class="cite"><a href="#src-37">37</a>,<a href="#src-38">38</a></sup>, hosting and OCR (about $12).</span>
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="result">
+        <div class="stats" aria-live="polite">
+          <div class="stat"><b id="out-arr5">$8.64M</b><span>ARR at the end of Year 5</span></div>
+          <div class="stat"><b id="out-be">Year 5</b><span id="out-be-label">Break-even year (Year 4 within $81k)</span></div>
+          <div class="stat"><b id="out-fund">$1.84M</b><span id="out-fund-label">Funding needed (largest cumulative loss)</span></div>
+        </div>
+        <p class="bep" id="out-bep">Break-even point: about 785 practices (9.7% of Australian practices) on the Year-5 cost base.</p>
+        <ul class="legend" aria-hidden="true"><li><i class="sw sw-revenue"></i>Revenue</li><li><i class="sw sw-costs"></i>Costs</li></ul>
+        <div class="chart" id="chart"></div>
+        <div class="table-wrap">
+          <table class="years" id="years">
+            <caption class="kicker">Year by year</caption>
+            <thead><tr><th scope="col">Year</th><th scope="col" class="num">Practices (end)</th><th scope="col" class="num">ARR (end)</th><th scope="col" class="num">Revenue</th><th scope="col" class="num">Costs</th><th scope="col" class="num">Net</th><th scope="col" class="num">Cumulative</th></tr></thead>
+            <tbody>
+              <tr><td>Year 1</td><td class="num">24</td><td class="num">$86k</td><td class="num">$43k</td><td class="num">$511k</td><td class="num">−$468k</td><td class="num">−$468k</td></tr>
+              <tr><td>Year 2</td><td class="num">120</td><td class="num">$432k</td><td class="num">$259k</td><td class="num">$913k</td><td class="num">−$654k</td><td class="num">−$1.12M</td></tr>
+              <tr><td>Year 3</td><td class="num">480</td><td class="num">$1.73M</td><td class="num">$1.08M</td><td class="num">$1.71M</td><td class="num">−$633k</td><td class="num">−$1.75M</td></tr>
+              <tr><td>Year 4</td><td class="num">1,200</td><td class="num">$4.32M</td><td class="num">$3.02M</td><td class="num">$3.1M</td><td class="num">−$81k</td><td class="num">−$1.84M</td></tr>
+              <tr><td>Year 5</td><td class="num">2,400</td><td class="num">$8.64M</td><td class="num">$6.48M</td><td class="num">$5.34M</td><td class="num">$1.14M</td><td class="num">−$700k</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p class="position"><strong>What the numbers say.</strong> At $60 per GP, the lean plan comes within about $80k of break-even in Year 4 and makes about $1.1M in Year 5, after raising about $1.8M. It depends on fast growth: 2,400 practices by Year 5, about 30% of Australian practices and 2.4 times the base case. That pace depends on signing practices in groups, through PHNs and medical groups. With the standard team, no scenario breaks even by Year 5.</p>
+
+    <h3>Assumptions</h3>
+    <ul class="plain">
+      <li><strong>Ramp (hypothesis).</strong> Practices live at the end of each year are 1%, 5%, 20%, 50% and 100% of the Year-5 count, net of churn. Year 1 is a paid NSW pilot. Year 2 adds NSW practices through PHNs and medical groups. Year 3 goes national through the Best Practice partner route. Years 4 and 5 add MedicalDirector practices.</li>
+      <li><strong>Lean plan (hypothesis).</strong> $60 per GP (PRD H1). 2,400 practices by Year 5, the same reach as the ambitious scenario, which depends on PHN and medical-group deals that sign many practices at once. The core team grows to about 2, 3, 4, 5 and 6 people. One support person covers 200 practices, assuming practices set BloodLine up themselves: Halo Connect monitors the connection and supports practices, so we don’t run a help desk for it.<sup class="cite"><a href="#src-42">42</a></sup></li>
+      <li><strong>Other scenarios</strong> use a core team of 10 by Year 5 and one support person per 150 practices.</li>
+      <li><strong>Start.</strong> Year 1 begins with the first paying practice, after 30 practice interviews, regulatory advice and a shadow pilot (PRD §14.7).</li>
+      <li><strong>Revenue in a year</strong> averages the practices live at its start and end. ARR counts the practices live at year end.</li>
+      <li><strong>People</strong> are the core team plus the customer team. Overheads and marketing add 25% of people costs (estimate).</li>
+      <li><strong>Compliance, legal and insurance</strong> cost $100–120k a year (estimate): regulatory and legal advice, a privacy impact assessment, a yearly penetration test ($15–40k for a SaaS platform<sup class="cite"><a href="#src-40">40</a></sup>), ISO 27001 from Year 2 ($15–80k+<sup class="cite"><a href="#src-41">41</a></sup>) and insurance.</li>
+      <li><strong>Funding needed</strong> is the largest cumulative loss over the five years. A “+” means the company still loses money in Year 5. A real raise adds a buffer on top.</li>
+      <li><strong>Not included:</strong> GST, tax, R&amp;D tax incentives, grants, price rises and expansion markets.</li>
+    </ul>
+  </section>
+
+  <section id="practice" aria-labelledby="practice-h">
+    <h2 id="practice-h">What a practice gets back</h2>
+    <p class="prose">In the first year, a practice’s return is safety and accreditation, not billing. Most follow-up consultations would happen anyway through the normal inbox. BloodLine only adds the ones for results that would otherwise have been missed, and we don’t yet know how many that is. The shadow pilot measures it before we claim it.</p>
+    <div class="cards">
+      <article class="card">
+        <span class="kicker">Cost to a practice</span>
+        <span class="figure" data-out="practice-cost">$3,600</span>
+        <p data-out="practice-cost-basis">A year, for 5 GPs at $60 per GP per month.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">Billing break-even</span>
+        <span class="figure" data-out="consults">≈ 1.3</span>
+        <p>extra item-23 consultations per GP per month would cover the fee (item 23 is $45.05<sup class="cite"><a href="#src-43">43</a></sup>). Not claimed until the pilot measures it.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">From the first year</span>
+        <ul>
+          <li>Evidence for the accreditation follow-up criterion<sup class="cite"><a href="#src-9">9</a></sup>, which PIP QI payments depend on.<sup class="cite"><a href="#src-10">10</a></sup></li>
+          <li>Fewer missed results, and fewer of the complaints that follow them.<sup class="cite"><a href="#src-16">16</a></sup></li>
+          <li>Less staff time spent chasing results (to measure in the pilot).</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="competitors" aria-labelledby="competitors-h">
+    <h2 id="competitors-h">Competitors</h2>
+    <p class="prose">Checked on 11 October 2026 from public material. “Not found” means we found no evidence of a feature, not that it can’t exist.</p>
+
+    <h3>What practices use today</h3>
+    <div class="cards">
+      <article class="card">
+        <span class="kicker">Included in practice software</span>
+        <h4>The practice software inbox</h4>
+        <p>Best Practice (75.9% of practices) and MedicalDirector (21.3%)<sup class="cite"><a href="#src-4">4</a></sup> put results in the GP’s inbox. The GP marks an action, a follow-up inbox lists recalls, and Bp Comms can text patients.<sup class="cite"><a href="#src-13">13</a>,<a href="#src-14">14</a>,<a href="#src-15">15</a></sup></p>
+        <p class="gap">The GP has to open the inbox. We found no push to the GP’s phone, no per-patient thresholds and no handover when the GP is away.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">Run by one lab</span>
+        <h4>Lab alerts</h4>
+        <p>Australian Clinical Labs’ eResults sends alerts for urgent results by push notification, SMS and email. High-risk results are texted, and the doctor replies to confirm.<sup class="cite"><a href="#src-11">11</a>,<a href="#src-12">12</a></sup></p>
+        <p class="gap">One lab’s results, judged by that lab’s criteria. We found no equivalent from Sonic or Healius.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">Manual</span>
+        <h4>Practice processes</h4>
+        <p>Registers, staff checks and reminders on the patient file, as the RACGP standards require.<sup class="cite"><a href="#src-9">9</a></sup></p>
+        <p class="gap">Depends on people remembering. Informal processes have led to missed results and Ahpra complaints.<sup class="cite"><a href="#src-16">16</a></sup></p>
+      </article>
+    </div>
+
+    <h3>Adjacent products that could move into this space</h3>
+    <div class="table-wrap">
+      <table class="wide">
+        <thead><tr><th scope="col">Product</th><th scope="col">What it does</th><th scope="col">Price</th><th scope="col">Overlap with BloodLine</th></tr></thead>
+        <tbody>
+          <tr><td>HotDoc</td><td>Bookings, reminders and SMS recalls to patients, including for results.<sup class="cite"><a href="#src-17">17</a></sup></td><td>About $81 per doctor per month (third party)<sup class="cite"><a href="#src-18">18</a></sup></td><td>Acts after the GP decides to recall a patient. Patient-facing. Strong distribution.</td></tr>
+          <tr><td>Cubiko</td><td>Practice reporting with over 1,000 metrics, including recall lists.<sup class="cite"><a href="#src-20">20</a></sup> Funded by some PHNs.<sup class="cite"><a href="#src-21">21</a></sup></td><td>From $159 per practice per month<sup class="cite"><a href="#src-19">19</a></sup></td><td>Reporting for practice managers, not real-time result alerts.</td></tr>
+          <tr><td>Pen CS Topbar</td><td>Prompts during the consult about gaps in care. Works with Best Practice, MedicalDirector and Zedmed.<sup class="cite"><a href="#src-22">22</a></sup></td><td>Often PHN-supported</td><td>Prompts when a patient’s file is opened, not when a result arrives.</td></tr>
+          <tr><td>MediRecords Evolve Direct</td><td>AI sorting and filing of incoming documents, announced for early 2026.<sup class="cite"><a href="#src-23">23</a></sup></td><td>Included in MediRecords plans</td><td>Files results. We found no checking or alerting. MediRecords practices only.</td></tr>
+          <tr><td>Yes AI</td><td>Says it reads pathology PDFs that arrive by email and flags abnormal values.<sup class="cite"><a href="#src-24">24</a></sup></td><td>Not published</td><td>The closest overlap we found. Vendor claims, not independently checked.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Who does what</h3>
+    <div class="table-wrap">
+      <table class="matrix">
+        <thead><tr>
+          <th scope="col">Capability</th>
+          <th scope="col" class="us">BloodLine<br><span style="text-transform:none; letter-spacing:0; font-weight:500">demo</span></th>
+          <th scope="col">Practice software inbox</th>
+          <th scope="col">ACL eResults</th>
+          <th scope="col">HotDoc</th>
+          <th scope="col">Cubiko</th>
+          <th scope="col">Topbar</th>
+        </tr></thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+
+    <h3>Overseas comparables</h3>
+    <div class="cards">
+      <article class="card">
+        <span class="kicker">Accurx · UK</span>
+        <span class="figure">≈ 98%</span>
+        <p>of English GP practices used its messaging products by 2021 (company figure).<sup class="cite"><a href="#src-26">26</a></sup> Raised £8.8M in 2019 and £27.5M in 2021.<sup class="cite"><a href="#src-25">25</a>,<a href="#src-26">26</a></sup> A tool that fits the GP workflow can reach almost every practice.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">Rad AI Continuity · US</span>
+        <span class="figure">$525M</span>
+        <p>valuation at its $60M round in 2025. Continuity closes the loop on follow-up of imaging findings; Rad AI says follow-up rose from 30% to 75% or more.<sup class="cite"><a href="#src-27">27</a></sup> Investors fund closing the loop.</p>
+      </article>
+      <article class="card">
+        <span class="kicker">Heidi Health · Australia</span>
+        <span class="figure">US$900M</span>
+        <p>valuation in September 2026, with US$50M ARR.<sup class="cite"><a href="#src-28">28</a></sup> Its main paid plan is about US$110–150 per clinician per month.<sup class="cite"><a href="#src-29">29</a></sup> Australian clinician software can scale globally at above $60 a seat.</p>
+      </article>
+    </div>
+
+    <div class="position">
+      <p><strong>Our position.</strong> We found no Australian product that does all of these together: checks every result from every lab as it arrives, against the printed range and the GP’s own rules; pushes to the GP’s phone; hands over to a covering colleague; and says when a result couldn’t be checked.</p>
+    </div>
+
+    <h3>Competitive risks</h3>
+    <ul class="plain">
+      <li>Best Practice could add alerts to its own inbox. It also controls our integration route through Halo Connect, so we aim to be a partner, not a rival.</li>
+      <li>Lab-led alerts like Australian Clinical Labs’ could spread to Sonic and Healius.</li>
+      <li>HotDoc and Cubiko already sell to most of our buyers and could add a similar feature.</li>
+      <li>AI inbox tools such as MediRecords and Yes AI are moving from filing results to flagging them.</li>
+    </ul>
+  </section>
+
+  <section id="sources" aria-labelledby="sources-h">
+    <h2 id="sources-h">Sources</h2>
+    <ol class="sources">
+      <li id="src-1"><span>1</span><span>RACGP, Health of the Nation 2025: current workforce. <a href="https://www.racgp.org.au/health-of-the-nation-2025/chapter-4-current-workforce-and-the-future/current-workforce-characteristics" target="_blank" rel="noopener">racgp.org.au</a></span></li>
+      <li id="src-2"><span>2</span><span>RACGP, Health of the Nation 2025: GP distribution. <a href="https://www.racgp.org.au/health-of-the-nation-2025/chapter-4-current-workforce-and-the-future/gp-distribution" target="_blank" rel="noopener">racgp.org.au</a></span></li>
+      <li id="src-3"><span>3</span><span>RACGP, general practice accreditation data 2010–2021. <a href="https://www.racgp.org.au/running-a-practice/practice-standards/standards-newsletter/reports/general-practice-accreditation-in-australia-data-f/results" target="_blank" rel="noopener">racgp.org.au</a></span></li>
+      <li id="src-4"><span>4</span><span>AIHW, PIP QI measures 2025–26. <a href="https://www.aihw.gov.au/reports/primary-health-care/pipqi-measures-2025-26" target="_blank" rel="noopener">aihw.gov.au</a></span></li>
+      <li id="src-5"><span>5</span><span>NHS England Digital, General Practice Workforce, 31 December 2025. <a href="https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services/31-december-2025" target="_blank" rel="noopener">digital.nhs.uk</a></span></li>
+      <li id="src-6"><span>6</span><span>RNZCGP, workforce survey 2024 snapshot. <a href="https://www.rnzcgp.org.nz/documents/603/2024_WFS_snapshot_FINAL.pdf" target="_blank" rel="noopener">rnzcgp.org.nz</a></span></li>
+      <li id="src-7"><span>7</span><span>ANMJ, Modernising My Health Record: pathology and imaging results. <a href="https://anmj.org.au/modernising-my-health-record-improved-access-to-pathology-and-diagnostic-imaging-results/" target="_blank" rel="noopener">anmj.org.au</a></span></li>
+      <li id="src-8"><span>8</span><span>EMPHN, RACGP releases the Standards 6th edition. <a href="https://emphn.org.au/news/racgp-releases-standards-for-general-practices-6th-edition/" target="_blank" rel="noopener">emphn.org.au</a></span></li>
+      <li id="src-9"><span>9</span><span>RACGP Standards 6th edition, CG6 Follow-up systems. <a href="https://www.racgp.org.au/running-a-practice/practice-standards/standards-6th-edition/the-standards-for-general-practices-6th-edition/clinical-governance-standard/cg6-follow-up-systems" target="_blank" rel="noopener">racgp.org.au</a></span></li>
+      <li id="src-10"><span>10</span><span>Department of Health, PIP QI fact sheet. <a href="https://www.health.gov.au/sites/default/files/2022-12/practice-incentives-program-quality-improvement-incentive-fact-sheet-what-practices-need-to-know.pdf" target="_blank" rel="noopener">health.gov.au</a></span></li>
+      <li id="src-11"><span>11</span><span>Australian Clinical Labs, high-risk result notifications via SMS. <a href="https://www.clinicallabs.com.au/doctor/articles/high-risk-result-notifications-via-sms" target="_blank" rel="noopener">clinicallabs.com.au</a></span></li>
+      <li id="src-12"><span>12</span><span>Australian Clinical Labs, eResults. <a href="https://www.clinicallabs.com.au/doctor/eresults" target="_blank" rel="noopener">clinicallabs.com.au</a></span></li>
+      <li id="src-13"><span>13</span><span>Bp Premier, viewing results in the provider inbox. <a href="https://kb.bpsoftware.net/au/bppremier/jade/Content/Clinical/PathologyandRadiology/Inbox_provider.htm" target="_blank" rel="noopener">kb.bpsoftware.net</a></span></li>
+      <li id="src-14"><span>14</span><span>Bp Premier, recall appointments from the Follow up Inbox. <a href="https://kb.bpsoftware.net/bppremier/saffron/Clinical/Recalls/RecallAppointments.htm" target="_blank" rel="noopener">kb.bpsoftware.net</a></span></li>
+      <li id="src-15"><span>15</span><span>MedicalDirector Helix, investigation results in the inbox. <a href="https://knowledge.helix.medicaldirector.com/topics/pathology_requests_in_the_inbox.html" target="_blank" rel="noopener">knowledge.helix.medicaldirector.com</a></span></li>
+      <li id="src-16"><span>16</span><span>Avant, GP’s failure to recall patient leads to Ahpra complaint. <a href="https://avant.org.au/resources/gps-failure-to-recall-patient-leads-to-ahpra-complaint" target="_blank" rel="noopener">avant.org.au</a></span></li>
+      <li id="src-17"><span>17</span><span>Best Practice partner page, HotDoc. <a href="https://bpsoftware.net/partner-hotdoc" target="_blank" rel="noopener">bpsoftware.net</a></span></li>
+      <li id="src-18"><span>18</span><span>HotDoc pricing summary (third party). <a href="https://us.fitgap.com/products/hotdoc" target="_blank" rel="noopener">fitgap.com</a></span></li>
+      <li id="src-19"><span>19</span><span>Cubiko pricing. <a href="https://www.cubiko.com.au/?p=12866" target="_blank" rel="noopener">cubiko.com.au</a></span></li>
+      <li id="src-20"><span>20</span><span>Cubiko, reporting for medical practices. <a href="https://cubiko.com.au/?p=199837" target="_blank" rel="noopener">cubiko.com.au</a></span></li>
+      <li id="src-21"><span>21</span><span>Medical Republic, PHN funds practices to use Cubiko. <a href="https://www.medicalrepublic.com.au/phn-funds-local-gp-practices-to-use-data-intelligence-platform/109798" target="_blank" rel="noopener">medicalrepublic.com.au</a></span></li>
+      <li id="src-22"><span>22</span><span>North Western Melbourne PHN, Topbar. <a href="https://nwmphn.org.au/?p=28033" target="_blank" rel="noopener">nwmphn.org.au</a></span></li>
+      <li id="src-23"><span>23</span><span>MediRecords, Evolve Direct announcement. <a href="https://medirecords.com/medirecords-unveils-evolve-direct-ai-powered-inbox-management" target="_blank" rel="noopener">medirecords.com</a></span></li>
+      <li id="src-24"><span>24</span><span>Yes AI, email for medical practices (vendor). <a href="https://yesai.au/ai-email-for-medical-practices/" target="_blank" rel="noopener">yesai.au</a></span></li>
+      <li id="src-25"><span>25</span><span>TechCrunch, Accurx Series A (2019). <a href="https://techcrunch.com/2019/02/24/accurx/" target="_blank" rel="noopener">techcrunch.com</a></span></li>
+      <li id="src-26"><span>26</span><span>Digital Health, Accurx funding and adoption (2021). <a href="https://digitalhealth.net/2021/09/accurx-secures-funding-expansion" target="_blank" rel="noopener">digitalhealth.net</a></span></li>
+      <li id="src-27"><span>27</span><span>AuntMinnie, Rad AI raises $60M. <a href="https://www.auntminnie.com/imaging-informatics/artificial-intelligence/article/15736249/rad-ai-rad-ai-raises-60m-in-funding-round" target="_blank" rel="noopener">auntminnie.com</a></span></li>
+      <li id="src-28"><span>28</span><span>IT Brief, Heidi raises US$340M. <a href="https://itbrief.com.au/story/heidi-raises-us-340m-to-expand-ai-agents-in-healthcare" target="_blank" rel="noopener">itbrief.com.au</a></span></li>
+      <li id="src-29"><span>29</span><span>Heidi pricing summary (third party). <a href="https://www.trytwofold.com/compare/heidi-health-pricing-2026-guide" target="_blank" rel="noopener">trytwofold.com</a></span></li>
+      <li id="src-30"><span>30</span><span>Best Practice Partner Network. <a href="https://kb.bpsoftware.net/au/bppremier/jade/Content/Management/PartnerNetwork.htm" target="_blank" rel="noopener">kb.bpsoftware.net</a></span></li>
+      <li id="src-31"><span>31</span><span>Best Practice, Bp Omni and Halo. <a href="https://bpsoftware.net/bp-omni/" target="_blank" rel="noopener">bpsoftware.net</a></span></li>
+      <li id="src-32"><span>32</span><span>Best Practice, Halo Connect FAQ. <a href="https://kb.bpsoftware.net/bppremier/Orchid/Integrations/HaloConnect/HaloConnectFAQ.htm" target="_blank" rel="noopener">kb.bpsoftware.net</a></span></li>
+      <li id="src-33"><span>33</span><span>Halo Connect FAQ. <a href="https://haloconnect.io/faq" target="_blank" rel="noopener">haloconnect.io</a></span></li>
+      <li id="src-34"><span>34</span><span>MedicalDirector on APIs.io. <a href="https://apis.io/providers/medical-director/" target="_blank" rel="noopener">apis.io</a></span></li>
+      <li id="src-35"><span>35</span><span>TGA, clinical decision support software. <a href="https://www.tga.gov.au/node/452893" target="_blank" rel="noopener">tga.gov.au</a></span></li>
+      <li id="src-36"><span>36</span><span>HL7 Australia, AU Core pathology result profile. <a href="https://hl7.org.au/fhir/core/1.0.0/StructureDefinition-au-core-diagnosticresult-path.html" target="_blank" rel="noopener">hl7.org.au</a></span></li>
+      <li id="src-37"><span>37</span><span>Twilio SMS pricing, Australia (US$0.0515 per SMS). <a href="https://www.twilio.com/en-us/sms/pricing/au" target="_blank" rel="noopener">twilio.com</a></span></li>
+      <li id="src-38"><span>38</span><span>Twilio Voice pricing, Australia (US$0.075 a minute to mobiles). <a href="https://www.twilio.com/en-us/voice/pricing/au" target="_blank" rel="noopener">twilio.com</a></span></li>
+      <li id="src-39"><span>39</span><span>Payscale, full stack software engineer salary, Sydney. <a href="https://www.payscale.com/research/AU/Job=Full_Stack_Software_Engineer/Salary/ba93cf1a/Sydney" target="_blank" rel="noopener">payscale.com</a></span></li>
+      <li id="src-40"><span>40</span><span>Penetration testing cost in Australia (vendor guide). <a href="https://vibe-eval.com/ai-pentest/penetration-testing-cost-australia/" target="_blank" rel="noopener">vibe-eval.com</a></span></li>
+      <li id="src-41"><span>41</span><span>ISO 27001 certification in Australia (consultancy guide). <a href="https://foit.com.au/iso-27001-certification/" target="_blank" rel="noopener">foit.com.au</a></span></li>
+      <li id="src-42"><span>42</span><span>Halo Connect integrator guide. <a href="https://docs.haloconnect.io/guides/integrator-guide/" target="_blank" rel="noopener">docs.haloconnect.io</a></span></li>
+      <li id="src-43"><span>43</span><span>MBS item 23 fee from 1 July 2026 (secondary source; confirm on MBS Online). <a href="https://pabau.com/blog/mbs-item-numbers/" target="_blank" rel="noopener">pabau.com</a></span></li>
+    </ol>
+  </section>
+
+  <p class="foot">Companion to <a href="PRD.html#sec-14">PRD §14</a>. Model figures live in the <code>MODEL</code> block at the bottom of this file.</p>
+</main>
+</div>
+
+<script>
+(() => {
+  // Model inputs. Sources are numbered in the Sources section.
+  const MODEL = {
+    australianGps: 40375,      // [1]
+    practices: 8100,           // estimate from [3]
+    bestPracticeShare: 0.759,  // [4]
+    englandGps: 39918,         // [5]
+    item23: 45.05,             // [43]
+    ramp: [0.01, 0.05, 0.2, 0.5, 1],          // practices live at year end, share of Year 5
+    coreRamp: [0.3, 0.5, 0.7, 0.85, 1],       // core team by year, share of Year 5
+    overheads: 0.25,                           // overheads and marketing, share of people costs (estimate)
+    compliance: [105000, 110000, 100000, 110000, 120000], // compliance, legal and insurance by year (estimate)
+  };
+
+  const Y = "Yes", P = "Partly", N = "Not found", X = "No";
+  const MATRIX = [
+    ["Sees every result, from every lab", [Y, Y, [P, "its own results"], N, N, N]],
+    ["Checks each value against the printed range", [Y, N, [P, "its high-risk criteria"], N, N, N]],
+    ["The GP’s own rules for a patient", [Y, N, N, N, N, N]],
+    ["Reaches the GP’s phone when a result arrives", [Y, N, Y, N, N, N]],
+    ["Hands over when the GP is away", [Y, N, N, N, N, N]],
+    ["Says when a result couldn’t be checked", [Y, N, N, N, N, N]],
+    ["Records who saw it, and when", [Y, Y, [P, "reply to confirm"], N, N, N]],
+    ["Messages patients to come back", [[X, "by design"], Y, N, Y, [P, "recall lists"], N]],
+  ];
+
+  const $ = (sel) => document.querySelector(sel);
+  const money = (v) => {
+    const sign = v < 0 ? "−" : "";
+    const a = Math.abs(v);
+    if (a >= 1e6) return `${sign}$${(a / 1e6).toFixed(a >= 1e7 ? 1 : 2).replace(/\.?0+$/, "")}M`;
+    if (a >= 1e3) return `${sign}$${Math.round(a / 1e3)}k`;
+    return `${sign}$${Math.round(a)}`;
+  };
+  const full = (v) => `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v)).toLocaleString("en-AU")}`;
+  const count = (v) => Math.round(v).toLocaleString("en-AU");
+  const pct = (v) => `${v < 10 ? v.toFixed(1).replace(/\.0$/, "") : Math.round(v)}%`;
+
+  // Capability matrix.
+  const markClass = { [Y]: "m-yes", [P]: "m-part", [N]: "m-none", [X]: "m-no" };
+  $("#matrix-body").innerHTML = MATRIX.map(([label, cells]) => {
+    const tds = cells.map((cell, i) => {
+      const [value, note] = Array.isArray(cell) ? cell : [cell, ""];
+      return `<td${i === 0 ? ' class="us"' : ""}><span class="mark ${markClass[value]}"><i aria-hidden="true"></i>${value}</span>${note ? `<span class="mark"><small>${note}</small></span>` : ""}</td>`;
+    });
+    return `<tr><td>${label}</td>${tds.join("")}</tr>`;
+  }).join("");
+
+  // Revenue, costs and break-even.
+  const inputs = { y5: $("#in-y5"), price: $("#in-price"), gps: $("#in-gps"), core: $("#in-core"), fte: $("#in-fte"), per: $("#in-per"), run: $("#in-run") };
+  const radios = [...document.querySelectorAll('input[name="scenario"]')];
+
+  function compute() {
+    const v = Object.fromEntries(Object.entries(inputs).map(([k, el]) => [k, Number(el.value)]));
+    const seat = v.price * 12;
+    const ends = MODEL.ramp.map((r) => Math.round(v.y5 * r));
+    let cumulative = 0, lowest = 0, breakEven = null;
+    const years = ends.map((end, i) => {
+      const avg = ((i ? ends[i - 1] : 0) + end) / 2;
+      const revenue = avg * v.gps * seat;
+      const people = (MODEL.coreRamp[i] * v.core + end / v.per) * v.fte;
+      const costs = people * (1 + MODEL.overheads) + avg * v.run * 12 + MODEL.compliance[i];
+      const net = revenue - costs;
+      cumulative += net;
+      lowest = Math.min(lowest, cumulative);
+      if (breakEven === null && net >= 0) breakEven = i + 1;
+      return { year: i + 1, practices: end, arr: end * v.gps * seat, revenue, costs, net, cumulative };
+    });
+    // Break-even point on the Year-5 cost base: fixed costs over what each practice contributes.
+    const fixed = v.core * v.fte * (1 + MODEL.overheads) + MODEL.compliance.at(-1);
+    const perPractice = v.gps * seat - v.run * 12 - (v.fte * (1 + MODEL.overheads)) / v.per;
+    const tam = MODEL.australianGps * seat;
+    return { ...v, years, breakEven, funding: -lowest, stillLosing: years.at(-1).net < 0, bePractices: perPractice > 0 ? fixed / perPractice : null, tam, sam: tam * MODEL.bestPracticeShare, england: MODEL.englandGps * seat };
+  }
+
+  function renderNumbers(m) {
+    const last = m.years.at(-1);
+    $("#out-y5").textContent = count(m.y5);
+    $("#out-price").textContent = `$${m.price}`;
+    $("#out-gps").textContent = String(m.gps);
+    $("#out-core").textContent = `${m.core} people`;
+    $("#out-fte").textContent = money(m.fte);
+    $("#out-per").textContent = String(m.per);
+    $("#out-run").textContent = `$${m.run}`;
+    $("#hint-y5").textContent = `≈ ${pct((m.y5 / MODEL.practices) * 100)} of Australian practices`;
+
+    $("#out-arr5").textContent = money(last.arr);
+    $("#out-be").textContent = m.breakEven ? `Year ${m.breakEven}` : "After Year 5";
+    // Say so when the year before break-even misses it by less than 5% of that year's costs.
+    const before = m.breakEven > 1 ? m.years[m.breakEven - 2] : null;
+    $("#out-be-label").textContent = before && -before.net <= 0.05 * before.costs ? `Break-even year (Year ${before.year} within ${money(-before.net)})` : "Break-even year";
+    $("#out-fund").textContent = `${money(m.funding)}${m.stillLosing ? "+" : ""}`;
+    $("#out-fund-label").textContent = m.stillLosing ? "Funding needed (still losing money in Year 5)" : "Funding needed (largest cumulative loss)";
+    $("#out-bep").textContent = m.bePractices
+      ? `Break-even point: about ${count(m.bePractices)} practices (${pct((m.bePractices / MODEL.practices) * 100)} of Australian practices) on the Year-5 cost base.`
+      : "At these settings, each practice costs more to serve than it pays, so there is no break-even point.";
+
+    $("#years tbody").innerHTML = m.years
+      .map((y) => `<tr><td>Year ${y.year}</td><td class="num">${count(y.practices)}</td><td class="num">${money(y.arr)}</td><td class="num">${money(y.revenue)}</td><td class="num">${money(y.costs)}</td><td class="num">${money(y.net)}</td><td class="num">${money(y.cumulative)}</td></tr>`)
+      .join("");
+
+    document.querySelector('[data-out="price-inline"]').textContent = `$${m.price}`;
+    document.querySelector('[data-out="tam-inline"]').textContent = money(m.tam);
+    const bars = { tam: m.tam, sam: m.sam, som: last.arr };
+    for (const [key, value] of Object.entries(bars)) {
+      const share = Math.min(100, (value / m.tam) * 100);
+      document.querySelector(`[data-bar="${key}"]`).style.width = `${share}%`;
+      const label = document.querySelector(`[data-out="${key}"]`);
+      label.textContent = money(value);
+      // The value sits inside a long bar, or just past the end of a short one.
+      label.style.left = share > 30 ? "0.75rem" : `calc(${share}% + 0.6rem)`;
+      label.style.color = share > 30 && key === "som" ? "var(--surface)" : "var(--ink)";
+    }
+    document.querySelector('[data-out="som-basis"]').textContent = `${count(last.practices)} practices from the model below`;
+    document.querySelector('[data-out="england"]').textContent = money(m.england);
+
+    document.querySelector('[data-out="practice-cost"]').textContent = full(m.gps * m.price * 12);
+    document.querySelector('[data-out="practice-cost-basis"]').textContent = `A year, for ${m.gps} GPs at $${m.price} per GP per month.`;
+    document.querySelector('[data-out="consults"]').textContent = `≈ ${(m.price / MODEL.item23).toFixed(1)}`;
+  }
+
+  // Grouped bars: revenue and costs for each year, on one scale starting at zero.
+  const chart = $("#chart");
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 640, H = 290, M = { top: 30, right: 12, bottom: 34, left: 58 };
+  const el = (name, attrs, parent) => {
+    const node = document.createElementNS(NS, name);
+    for (const [k, val] of Object.entries(attrs)) node.setAttribute(k, val);
+    parent?.appendChild(node);
+    return node;
+  };
+  const niceMax = (v) => {
+    const raw = v / 4;
+    const mag = 10 ** Math.floor(Math.log10(raw || 1));
+    const step = [1, 2, 2.5, 5, 10].map((s) => s * mag).find((s) => s >= raw);
+    return { step, max: step * 4 };
+  };
+  const barPath = (x, w, top, base) => {
+    const h = base - top;
+    const r = Math.min(4, h / 2, w / 2);
+    return `M${x},${base} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${base} Z`;
+  };
+  const tip = document.createElement("div");
+  tip.className = "tip";
+  tip.hidden = true;
+  chart.appendChild(tip);
+
+  function renderChart(m) {
+    chart.querySelector("svg")?.remove();
+    const summary = m.years.map((y) => `Year ${y.year}: revenue ${money(y.revenue)}, costs ${money(y.costs)}`).join("; ");
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Revenue and costs each year. ${summary}.` });
+    chart.insertBefore(svg, tip);
+    const plotW = W - M.left - M.right, plotH = H - M.top - M.bottom;
+    const { step, max } = niceMax(Math.max(...m.years.flatMap((y) => [y.revenue, y.costs])));
+    const yPos = (v) => M.top + plotH - (v / max) * plotH;
+    for (let t = 0; t <= max + 1e-6; t += step) {
+      el("line", { x1: M.left, x2: W - M.right, y1: yPos(t), y2: yPos(t), class: t === 0 ? "axis" : "grid" }, svg);
+      el("text", { x: M.left - 10, y: yPos(t) + 4, "text-anchor": "end", class: "tick" }, svg).textContent = money(t);
+    }
+    const band = plotW / m.years.length;
+    const groupW = Math.min(92, band * 0.66), barW = (groupW - 2) / 2;
+    m.years.forEach((y, i) => {
+      const x0 = M.left + band * i + (band - groupW) / 2;
+      const base = yPos(0);
+      [["revenue", y.revenue, x0], ["costs", y.costs, x0 + barW + 2]].forEach(([kind, value, x]) => {
+        const top = Math.min(yPos(value), base - (value > 0 ? 2 : 0));
+        el("path", { class: `b-${kind}`, d: barPath(x, barW, top, base) }, svg);
+        if (i === m.years.length - 1) el("text", { x: x + barW / 2, y: top - 7, "text-anchor": "middle", class: "vlabel" }, svg).textContent = money(value);
+      });
+      el("text", { x: M.left + band * i + band / 2, y: H - 10, "text-anchor": "middle", class: "xlab" }, svg).textContent = `Year ${y.year}`;
+      const hit = el("rect", { x: M.left + band * i, y: M.top, width: band, height: plotH, class: "hit", tabindex: "0", "aria-label": `Year ${y.year}: revenue ${money(y.revenue)}, costs ${money(y.costs)}, net ${money(y.net)}, cumulative ${money(y.cumulative)}` }, svg);
+      el("rect", { x: M.left + band * i + 2, y: M.top, width: band - 4, height: plotH, rx: 6, class: "focus-ring" }, svg);
+      const show = () => {
+        tip.innerHTML = `<b>Year ${y.year}</b><dl><dt><i class="sw sw-revenue"></i>Revenue</dt><dd>${full(y.revenue)}</dd><dt><i class="sw sw-costs"></i>Costs</dt><dd>${full(y.costs)}</dd><dt>Net</dt><dd>${full(y.net)}</dd><dt>Cumulative</dt><dd>${full(y.cumulative)}</dd></dl>`;
+        tip.hidden = false;
+        const box = svg.getBoundingClientRect(), scale = box.width / W;
+        const left = (M.left + band * i + band / 2) * scale - tip.offsetWidth / 2;
+        tip.style.left = `${Math.max(0, Math.min(left, box.width - tip.offsetWidth))}px`;
+        tip.style.top = `${Math.max(0, M.top * scale - tip.offsetHeight + 8)}px`;
+      };
+      const hide = () => { tip.hidden = true; };
+      hit.addEventListener("mouseenter", show);
+      hit.addEventListener("mouseleave", hide);
+      hit.addEventListener("focus", show);
+      hit.addEventListener("blur", hide);
+    });
+  }
+
+  function update() {
+    const m = compute();
+    renderNumbers(m);
+    renderChart(m);
+  }
+
+  // Each scenario sets every assumption. Moving a slider by hand makes the assumptions custom.
+  const STANDARD = { gps: 5, fte: 165000, run: 70, price: 60, core: 10, per: 150 };
+  const PRESETS = {
+    lean: { ...STANDARD, y5: 2400, core: 6, per: 200, note: "2,400 practices by Year 5 (≈ 30%) at $60 per GP, with a 6-person core team and one support person per 200 practices." },
+    base: { ...STANDARD, y5: 1000, note: "1,000 practices by Year 5 (≈ 12%), at $60 per GP with the standard team." },
+    conservative: { ...STANDARD, y5: 400, note: "400 practices by Year 5 (≈ 5%), at $60 per GP with the standard team." },
+    ambitious: { ...STANDARD, y5: 2400, note: "2,400 practices by Year 5 (≈ 30%), at $60 per GP with the standard team." },
+  };
+  const note = $("#preset-note");
+  const markPreset = () => {
+    const key = Object.keys(PRESETS).find((p) => Object.keys(inputs).every((k) => PRESETS[p][k] === Number(inputs[k].value)));
+    radios.forEach((r) => { r.checked = r.value === key; });
+    note.textContent = key ? PRESETS[key].note : "Custom assumptions. Pick a scenario to reset them.";
+  };
+  radios.forEach((r) => r.addEventListener("change", () => {
+    for (const k of Object.keys(inputs)) inputs[k].value = PRESETS[r.value][k];
+    markPreset();
+    update();
+  }));
+  Object.values(inputs).forEach((input) => input.addEventListener("input", () => { markPreset(); update(); }));
+  $("#controls").addEventListener("submit", (e) => e.preventDefault());
+  update();
+})();
+</script>
+</body>
+</html>

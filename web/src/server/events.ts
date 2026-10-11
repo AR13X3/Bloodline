@@ -8,7 +8,7 @@ export type LiveEvent =
   | { type: "pipeline"; step: PipelineStep; sourceMessageId: string; reportId: string | null; detail?: Record<string, unknown>; at: string }
   | { type: "alert.created"; alertId: string; recipientId: string; reasons: string[]; at: string }
   | { type: "alert.seen"; alertId: string; at: string }
-  | { type: "notification"; alertId: string; sourceMessageId: string | null; channel: string; status: string; recipient: string | null; detail: string | null; at: string }
+  | { type: "notification"; alertId: string; sourceMessageId: string | null; channel: string; status: string; recipient: string | null; detail: string | null; repeat?: number; at: string }
   | { type: "rules.changed"; patientId: string; at: string }
   | { type: "settings.changed"; at: string }
   | { type: "demo.reset"; at: string };

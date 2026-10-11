@@ -2,7 +2,6 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, CircleDashed, RotateCcw, Radio } from "lucide-react";
-import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -29,8 +28,8 @@ function ProviderChip({ ok, label, hint }: { ok: boolean; label: string; hint: s
       <TooltipTrigger asChild>
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
-            ok ? "bg-success-soft text-[oklch(0.42_0.11_155)] ring-success/25" : "bg-muted text-muted-foreground ring-border",
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap [&_svg]:text-success",
+            ok ? "bg-card text-primary" : "bg-secondary text-muted-foreground [&_svg]:text-muted-foreground",
           )}
         >
           {ok ? <CheckCircle2 className="size-3.5" /> : <CircleDashed className="size-3.5" />}
@@ -62,45 +61,46 @@ export function ConsoleHeader({ feed, connected }: { feed: DashboardFeed | undef
     mutationFn: api.reset,
     onSuccess: () => {
       queryClient.invalidateQueries();
-      toast.success("Demo reset", { description: "Synthetic data restored. Saved AI readings kept." });
+      toast.success("Demo reset", { description: "Synthetic data restored. Saved OCR readings kept." });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1680px] items-center gap-4 px-6 py-3">
-        <div className="flex items-center gap-2.5">
+      <div className="mx-auto flex max-w-[1680px] items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
+        <div className="flex shrink-0 items-center gap-2.5">
           <Logo className="size-9" />
           <div className="text-lg font-semibold tracking-tight">BloodLine</div>
         </div>
-        <span className="ml-2 hidden rounded-full border border-dashed border-review/60 bg-review-soft px-2.5 py-1 text-[11px] font-medium text-review-foreground lg:inline">
+        <span className="ml-2 hidden rounded-full bg-review-soft px-3 py-1.5 text-[11px] font-medium whitespace-nowrap text-review-foreground xl:inline">
           Synthetic data · not for clinical use
         </span>
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="mr-1 hidden items-center gap-1.5 text-xs text-muted-foreground md:inline-flex">
+          <span className="mr-1 hidden items-center gap-1.5 text-xs whitespace-nowrap text-muted-foreground md:inline-flex">
             <span className="relative flex size-2">
               {connected ? <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60" /> : null}
               <span className={cn("relative inline-flex size-2 rounded-full", connected ? "bg-success" : "bg-muted-foreground/40")} />
             </span>
             {connected ? "Live" : "Reconnecting"}
           </span>
-          <ProviderChip ok={feed?.providers.ai ?? false} label="AI reading" hint="Claude Haiku 5.5 via OpenRouter" />
-          <ProviderChip ok={feed?.providers.email ?? false} label="Email" hint="Resend" />
-          <ProviderChip ok={feed?.providers.twilio ?? false} label="SMS & calls" hint="Twilio" />
+          <div className="hidden items-center gap-2 lg:flex">
+            <ProviderChip ok={feed?.providers.ocr ?? false} label="OCR" hint="OpenRouter" />
+            <ProviderChip ok={feed?.providers.email ?? false} label="Email" hint="Resend" />
+            <ProviderChip ok={feed?.providers.twilio ?? false} label="SMS & calls" hint="Twilio" />
+          </div>
 
-          <motion.div
-            layout
+          <div
             className={cn(
-              "ml-2 flex items-center gap-2.5 rounded-full py-1 pl-3 pr-1.5 ring-1 ring-inset transition-colors",
-              live ? "bg-review-soft ring-review/50" : "bg-card ring-border",
+              "ml-2 flex shrink-0 items-center gap-2.5 rounded-full py-1.5 pl-3.5 pr-2 transition-colors",
+              live ? "bg-review-soft" : "bg-card",
             )}
           >
             <Radio className={cn("size-4", live ? "text-review-foreground" : "text-muted-foreground")} />
-            <div className="leading-tight">
+            <div className="leading-tight whitespace-nowrap">
               <div className="text-xs font-semibold">Live messages</div>
-              <div className="text-[11px] text-muted-foreground">{live ? "Real email, SMS & calls" : "Simulated"}</div>
+              <div className="hidden text-[11px] text-muted-foreground sm:block">{live ? "Real email, SMS & calls" : "Simulated"}</div>
             </div>
             <Switch
               checked={live}
@@ -108,7 +108,7 @@ export function ConsoleHeader({ feed, connected }: { feed: DashboardFeed | undef
               onCheckedChange={(on) => (on ? setConfirmLive(true) : setLive.mutate(false))}
               aria-label="Live messages"
             />
-          </motion.div>
+          </div>
 
           <AlertDialog open={confirmLive} onOpenChange={setConfirmLive}>
             <AlertDialogContent>
@@ -128,15 +128,15 @@ export function ConsoleHeader({ feed, connected }: { feed: DashboardFeed | undef
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" disabled={reset.isPending}>
-                <RotateCcw /> Reset demo
+              <Button variant="ghost" size="sm" disabled={reset.isPending} aria-label="Reset demo">
+                <RotateCcw /> <span className="hidden sm:inline">Reset demo</span>
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset the demo?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Clears reports, alerts, messages and rule changes, then restores the synthetic patients. Saved AI readings and the
+                  Clears reports, alerts, messages and rule changes, then restores the synthetic patients. Saved OCR readings and the
                   live-messages setting are kept.
                 </AlertDialogDescription>
               </AlertDialogHeader>

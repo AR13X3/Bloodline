@@ -84,7 +84,7 @@ export function UploadCard() {
   };
 
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative h-full overflow-hidden">
       <CardHeader>
         <SectionTitle icon={FileUp} title="Send a lab report" />
       </CardHeader>
@@ -108,8 +108,8 @@ export function UploadCard() {
           <AnimatePresence mode="wait" initial={false}>
             {file ? (
               <motion.div key="file" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={fade(0, 0.15)} className="flex items-center gap-3">
-                <span className="grid size-11 place-items-center rounded-xl bg-white text-brand shadow-sm ring-1 ring-brand/20">
-                  <FileText className="size-5" />
+                <span className="grid size-11 place-items-center rounded-full bg-card text-primary">
+                  <FileText className="size-5" strokeWidth={1.75} />
                 </span>
                 <div className="text-left">
                   <div className="max-w-56 truncate text-sm font-medium">{file.name}</div>
@@ -134,9 +134,9 @@ export function UploadCard() {
                 <motion.span
                   animate={{ y: dragging ? -3 : 0 }}
                   transition={fade()}
-                  className="grid size-12 place-items-center rounded-2xl bg-white text-brand shadow-sm ring-1 ring-border"
+                  className="grid size-12 place-items-center rounded-full bg-card text-primary"
                 >
-                  <FileUp className="size-5" />
+                  <FileUp className="size-5" strokeWidth={1.75} />
                 </motion.span>
                 <div className="text-sm font-medium">Drop a PDF lab report here</div>
                 <div className="text-xs text-muted-foreground">or click to choose · synthetic or de-identified reports only</div>
@@ -145,7 +145,8 @@ export function UploadCard() {
           </AnimatePresence>
         </motion.label>
 
-        <div className="grid grid-cols-2 gap-3">
+        {/* Side by side only when the card is full width: in the narrow column the names get cut off. */}
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Patient</Label>
             <Select value={patientId} onValueChange={setPatientId}>
@@ -183,7 +184,7 @@ export function UploadCard() {
           {upload.isPending ? "Reading and checking…" : "Send to BloodLine"}
         </Button>
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 text-xs text-muted-foreground">
           <span>No report handy?</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -206,8 +207,8 @@ export function UploadCard() {
 
         <div className="border-t pt-4">
           <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              <Zap className="size-3.5" /> Quick scenarios
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Zap className="size-4" strokeWidth={1.75} /> Quick scenarios
             </div>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -223,12 +224,12 @@ export function UploadCard() {
               <TooltipContent>Re-sends the last scenario with the same message ID</TooltipContent>
             </Tooltip>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {scenarios.data?.map((s, i) => (
               <motion.div
                 key={s.id}
                 {...rise(stagger(i))}
-                className="group flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-muted/60"
+                className="group flex items-center gap-3 rounded-2xl bg-secondary/60 px-3.5 py-2.5 transition-colors hover:bg-secondary"
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{s.title}</div>
@@ -240,7 +241,7 @@ export function UploadCard() {
                   aria-label={`Send ${s.title}`}
                   disabled={busy}
                   onClick={() => sendScenario.mutate({ scenario: s.id })}
-                  className="shrink-0 group-hover:border-brand/40 group-hover:text-brand"
+                  className="shrink-0 border-transparent bg-card group-hover:bg-primary group-hover:text-primary-foreground"
                 >
                   {sendScenario.isPending && sendScenario.variables?.scenario === s.id && !sendScenario.variables?.sourceMessageId ? (
                     <Loader2 className="animate-spin" />

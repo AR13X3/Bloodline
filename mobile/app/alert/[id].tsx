@@ -1,15 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { ArrowLeft, CheckCircle2, CircleHelp, FileText, Flag, ListChecks, MoveVertical, UserX } from "lucide-react-native";
+import { ArrowLeft, CalendarDays, CheckCircle2, CircleHelp, FileText, Flag, ListChecks, MoveVertical, Ruler, UserX } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
-import { Button, Card, RangeBar, ReasonChip, SectionLabel, Sparkline, T, formatDate } from "@/components/ui";
+import { Button, Card, IconButton, RangeBar, ReasonChip, SectionLabel, Sparkline, StatRow, STROKE, T, formatDate } from "@/components/ui";
 import { fade, rise, stagger } from "@/motion";
 import { useSession } from "@/session";
 import { colors, radius } from "@/theme";
@@ -20,10 +19,10 @@ function Why({ icon, tone, title, detail }: { icon: ReactNode; tone: string; tit
     <View style={styles.why}>
       <View style={[styles.whyIcon, { backgroundColor: tone }]}>{icon}</View>
       <View style={{ flex: 1 }}>
-        <T weight="semibold" size={15}>
+        <T weight="medium" size={16}>
           {title}
         </T>
-        <T size={13} color={colors.textMuted} style={{ marginTop: 2, lineHeight: 19 }}>
+        <T size={13} color={colors.textMuted} style={{ marginTop: 3, lineHeight: 19 }}>
           {detail}
         </T>
       </View>
@@ -35,24 +34,24 @@ function reasonsExplained(a: AlertDetail) {
   const r = a.result;
   const items: { key: string; node: ReactNode }[] = [];
   if (a.reasons.includes("lab_flag")) {
-    items.push({ key: "lab", node: <Why icon={<Flag size={16} color={colors.navy} />} tone={colors.navySoft} title="The lab flagged this result" detail={`Flag printed on the report: ${r.labFlag ?? "—"}.`} /> });
+    items.push({ key: "lab", node: <Why icon={<Flag size={18} color={colors.ink} strokeWidth={STROKE} />} tone={colors.mist} title="The lab flagged this result" detail={`Flag printed on the report: ${r.labFlag ?? "—"}.`} /> });
   }
   if (a.reasons.includes("outside_range")) {
     items.push({
       key: "range",
-      node: <Why icon={<MoveVertical size={16} color={colors.amberText} />} tone={colors.amberSoft} title="Outside the reported range, may need review" detail={`${r.value} ${r.unit ?? ""} is ${a.rangePosition} the range printed on this report (${r.range}).`} />,
+      node: <Why icon={<MoveVertical size={18} color={colors.amberText} strokeWidth={STROKE} />} tone={colors.amberSoft} title="Outside the reported range, may need review" detail={`${r.value} ${r.unit ?? ""} is ${a.rangePosition} the range printed on this report (${r.range}).`} />,
     });
   }
   for (const rule of a.matchedRules) {
     items.push({
       key: rule.id,
-      node: <Why icon={<ListChecks size={16} color={colors.tealDeep} />} tone={colors.tealSoft} title="Matches a rule you set" detail={`Alert if ${r.testName} is ${rule.direction} ${rule.threshold} ${rule.unit} (${rule.ownerName}).`} />,
+      node: <Why icon={<ListChecks size={18} color={colors.ink} strokeWidth={STROKE} />} tone={colors.sky} title="Matches a rule you set" detail={`Alert if ${r.testName} is ${rule.direction} ${rule.threshold} ${rule.unit} (${rule.ownerName}).`} />,
     });
   }
   if (a.reasons.includes("couldnt_check")) {
     items.push({
       key: "unclear",
-      node: <Why icon={<CircleHelp size={16} color={colors.amberText} />} tone={colors.amberSoft} title="BloodLine couldn't check this result" detail={`${r.couldntCheckLabel ?? r.ruleLimitationLabel ?? "Something on the report couldn't be read"}. Please open the report.`} />,
+      node: <Why icon={<CircleHelp size={18} color={colors.amberText} strokeWidth={STROKE} />} tone={colors.amberSoft} title="BloodLine couldn't check this result" detail={`${r.couldntCheckLabel ?? r.ruleLimitationLabel ?? "Something on the report couldn't be read"}. Please open the report.`} />,
     });
   }
   return items;
@@ -78,7 +77,7 @@ export default function AlertScreen() {
   if (!alert.data) {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
-        {alert.isError ? <T color={colors.textMuted}>Couldn&apos;t load this alert.</T> : <ActivityIndicator color={colors.teal} />}
+        {alert.isError ? <T color={colors.textMuted}>Couldn&apos;t load this alert.</T> : <ActivityIndicator color={colors.accent} />}
       </View>
     );
   }
@@ -88,63 +87,68 @@ export default function AlertScreen() {
   const outside = a.rangePosition === "below" || a.rangePosition === "above";
   const isRecipient = a.recipient.id === clinicianId;
   const seenAt = a.seenAt;
+  const openReport = a.report.fileUrl ? () => WebBrowser.openBrowserAsync(api.reportUrl(a.report.fileUrl!)) : undefined;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}>
-        <LinearGradient colors={["#13294B", "#174866", "#0F8B85"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
-            <ArrowLeft size={22} color={colors.white} />
-          </Pressable>
-          <Animated.View entering={rise()}>
-            <T size={14} color="rgba(255,255,255,0.75)">
-              {a.patient.name} · {formatDate(r.collectedAt)}
-            </T>
-            <T weight="semibold" size={20} color={colors.white} style={{ marginTop: 8 }}>
-              {r.testName}
-            </T>
-            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 2 }}>
-              <T weight="bold" size={52} color={colors.white} style={{ letterSpacing: -1.5 }}>
-                {r.value}
-              </T>
-              <T weight="medium" size={18} color="rgba(255,255,255,0.8)" style={{ marginBottom: 12 }}>
-                {r.unit ?? ""}
-              </T>
-            </View>
+        <View style={[styles.hero, { paddingTop: insets.top + 10 }]}>
+          <View style={styles.heroTop}>
+            <IconButton icon={ArrowLeft} label="Back" onPress={() => router.back()} />
+            {openReport ? <IconButton icon={FileText} label="View original report" onPress={openReport} /> : null}
+          </View>
+          <Animated.View entering={rise()} style={{ marginTop: 22, gap: 4 }}>
             <View style={styles.chips}>
               {a.reasons.map((reason) => (
                 <ReasonChip key={reason} reason={reason} />
               ))}
             </View>
+            <T size={15} color={colors.textMuted} style={{ marginTop: 10 }}>
+              {a.patient.name}
+            </T>
+            <T weight="regular" size={30} color={colors.ink} style={{ lineHeight: 36 }}>
+              {r.testName}
+            </T>
+            <View style={styles.valueRow}>
+              <T weight="light" size={64} color={outside ? colors.amberText : colors.ink} style={{ letterSpacing: -2, lineHeight: 70 }}>
+                {r.value}
+              </T>
+              <T size={18} color={colors.textMuted} style={{ marginBottom: 12 }}>
+                {r.unit ?? ""}
+              </T>
+            </View>
           </Animated.View>
-        </LinearGradient>
+        </View>
 
         <Animated.View entering={rise(stagger(1))} style={styles.body}>
+          <StatRow
+            items={[
+              { icon: Ruler, value: r.range ?? "—", label: "Printed range", color: outside ? colors.amberText : colors.accent },
+              { icon: Flag, value: r.labFlag ?? "None", label: "Lab flag" },
+              { icon: CalendarDays, value: new Date(r.collectedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" }), label: "Collected" },
+            ]}
+          />
+
           {r.valueNumber !== null && r.range ? (
-            <Card>
-              <View style={styles.rowBetween}>
-                <T weight="semibold" size={14}>
-                  Printed range
-                </T>
-                <T weight="semibold" size={14} color={outside ? colors.amberText : colors.tealDeep}>
-                  {r.range} {r.unit ?? ""}
-                </T>
-              </View>
-              <RangeBar value={r.valueNumber} low={rangeLow(r.range)} high={rangeHigh(r.range)} position={a.rangePosition} />
-            </Card>
+            <View>
+              <SectionLabel>Where it sits</SectionLabel>
+              <Card style={{ paddingTop: 14 }}>
+                <RangeBar value={r.valueNumber} low={rangeLow(r.range)} high={rangeHigh(r.range)} position={a.rangePosition} />
+              </Card>
+            </View>
           ) : null}
 
           <View>
             <SectionLabel>Why you&apos;re seeing this</SectionLabel>
-            <Card style={{ gap: 14 }}>{reasonsExplained(a).map((i) => <View key={i.key}>{i.node}</View>)}</Card>
+            <Card style={{ gap: 16 }}>{reasonsExplained(a).map((i) => <View key={i.key}>{i.node}</View>)}</Card>
           </View>
 
           {r.labComment ? (
             <View style={styles.comment}>
-              <T weight="semibold" size={13} color={colors.tealDeep}>
+              <T weight="medium" size={14} color={colors.ink}>
                 Lab comment
               </T>
-              <T size={14} style={{ marginTop: 4, lineHeight: 20 }}>
+              <T size={15} style={{ marginTop: 6, lineHeight: 21 }}>
                 {r.labComment}
               </T>
             </View>
@@ -152,8 +156,8 @@ export default function AlertScreen() {
 
           {a.report.nameMatches === false ? (
             <View style={styles.warn}>
-              <UserX size={18} color={colors.amberText} />
-              <T size={13} color={colors.amberText} style={{ flex: 1 }}>
+              <UserX size={20} color={colors.amberText} strokeWidth={STROKE} />
+              <T size={14} color={colors.amberText} style={{ flex: 1, lineHeight: 19 }}>
                 The name on the report (&ldquo;{a.report.nameOnReport}&rdquo;) doesn&apos;t match {a.patient.name}. Check the report.
               </T>
             </View>
@@ -176,18 +180,16 @@ export default function AlertScreen() {
             </View>
           ) : null}
 
-          {a.report.fileUrl ? (
-            <Button label="View original report" variant="secondary" icon={FileText} onPress={() => WebBrowser.openBrowserAsync(api.reportUrl(a.report.fileUrl!))} />
-          ) : null}
+          {openReport ? <Button label="View original report" variant="secondary" icon={FileText} onPress={openReport} /> : null}
         </Animated.View>
       </ScrollView>
 
       {isRecipient ? (
-        <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
+        <View style={[styles.bottom, { paddingBottom: insets.bottom + 14 }]}>
           {seenAt ? (
             <Animated.View entering={fade()} style={styles.seen}>
-              <CheckCircle2 size={22} color={colors.green} />
-              <T weight="semibold" size={15} color={colors.green}>
+              <CheckCircle2 size={22} color={colors.green} strokeWidth={STROKE} />
+              <T weight="medium" size={16} color={colors.green}>
                 Seen at {new Date(seenAt).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" })}
               </T>
             </Animated.View>
@@ -219,15 +221,16 @@ function rangeHigh(range: string): number | null {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
-  hero: { paddingHorizontal: 20, paddingBottom: 48 },
-  back: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center", marginBottom: 14 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
-  body: { paddingHorizontal: 16, marginTop: -28, gap: 16 },
+  hero: { backgroundColor: colors.panel, paddingHorizontal: 20, paddingBottom: 56, borderBottomLeftRadius: radius.xl, borderBottomRightRadius: radius.xl },
+  heroTop: { flexDirection: "row", justifyContent: "space-between" },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  valueRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
+  body: { paddingHorizontal: 18, marginTop: -30, gap: 20 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  why: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
-  whyIcon: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  comment: { backgroundColor: colors.tealSoft, borderRadius: radius.md, padding: 14, borderLeftWidth: 4, borderLeftColor: colors.teal },
-  warn: { flexDirection: "row", gap: 10, alignItems: "center", backgroundColor: colors.amberSoft, borderRadius: radius.md, padding: 12 },
-  bottom: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: "rgba(245,247,251,0.96)", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  seen: { height: 52, borderRadius: radius.md, flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center", backgroundColor: colors.greenSoft },
+  why: { flexDirection: "row", gap: 14, alignItems: "flex-start" },
+  whyIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  comment: { backgroundColor: colors.sky, borderRadius: radius.lg, padding: 18 },
+  warn: { flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: colors.amberSoft, borderRadius: radius.lg, padding: 16 },
+  bottom: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 18, paddingTop: 12, backgroundColor: "rgba(241,244,246,0.96)" },
+  seen: { height: 58, borderRadius: radius.pill, flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center", backgroundColor: colors.greenSoft },
 });

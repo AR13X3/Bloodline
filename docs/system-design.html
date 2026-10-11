@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>BloodLine System Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Geist+Mono:wght@400;500&family=Urbanist:wght@500;600;700&display=swap">
+<style>
+/* Layout: a wide map with a details panel beside it; steps, data locations and the
+   demo-to-production changes underneath. Line colour and style carry data sensitivity. */
+:root {
+  --bg: #f1f4f6;
+  --surface: #ffffff;
+  --ink: #123441;
+  --muted: #556c77;
+  --line: #dde6ea;
+  --line-strong: #b9c9d0;
+  --brand: #0f3b4b;
+  --brand-soft: #d7e9ef;
+  --zone: #f7f9fa;
+  --zone-brand: #e9f3f6;
+  --phi: #c2410c;
+  --ref: #0b6a78;
+  --none: #7b8f98;
+  --ok: #1f6e4d;
+  --ok-soft: #e1f1ea;
+  --warn: #7a5212;
+  --warn-soft: #fbf0dc;
+  --font-display: "Urbanist", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c171c; --surface: #112129; --ink: #e1ebef; --muted: #93a8b2; --line: #20363f; --line-strong: #35525e;
+    --brand: #a3d6e4; --brand-soft: #173944; --zone: #0f1d23; --zone-brand: #10272f;
+    --phi: #fb923c; --ref: #7fcbd8; --none: #8aa0a9; --ok: #7fd3ad; --ok-soft: #10302a; --warn: #f0c27e; --warn-soft: #33270f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c171c; --surface: #112129; --ink: #e1ebef; --muted: #93a8b2; --line: #20363f; --line-strong: #35525e;
+  --brand: #a3d6e4; --brand-soft: #173944; --zone: #0f1d23; --zone-brand: #10272f;
+  --phi: #fb923c; --ref: #7fcbd8; --none: #8aa0a9; --ok: #7fd3ad; --ok-soft: #10302a; --warn: #f0c27e; --warn-soft: #33270f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1rem/1.6 var(--font-body); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ref); outline-offset: 2px; border-radius: 4px; }
+.page { max-width: 96rem; margin: 0 auto; padding-inline: clamp(1rem, 3vw, 2rem); padding-block: 1.75rem 4rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* Header */
+.head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem 2rem; }
+.head-text { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.eyebrow { margin: 0; font: 700 0.75rem/1.2 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 700 clamp(1.9rem, 4vw, 2.6rem)/1.1 var(--font-display); letter-spacing: -0.01em; color: var(--brand); }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); }
+.views { display: inline-flex; padding: 0.25rem; gap: 0.25rem; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.views button { border: 0; background: transparent; padding: 0.5rem 0.95rem; border-radius: 9px; cursor: pointer; font: 600 0.9rem/1.2 var(--font-display); color: var(--muted); }
+.views button[aria-pressed="true"] { background: var(--brand); color: var(--surface); }
+
+/* Map and details */
+.layout { display: block; }
+.intro { margin: 0; padding: 0.25rem 0.25rem 0; max-width: 90ch; }
+.status-key { margin: 0; padding: 0 0.25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; font-size: 0.875rem; color: var(--muted); }
+.map { margin: 0; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.legend { list-style: none; margin: 0; padding: 0 0.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-size: 0.875rem; color: var(--muted); }
+.legend li { display: inline-flex; align-items: center; gap: 0.5rem; }
+.legend svg { width: 2.5rem; height: 0.75rem; flex: none; }
+.legend b { color: var(--ink); font-weight: 700; }
+.scroll { overflow-x: auto; border-radius: 12px; }
+#diagram { display: block; width: 100%; min-width: 1040px; height: auto; }
+.map figcaption { padding: 0 0.25rem; font-size: 0.875rem; color: var(--muted); max-width: 90ch; }
+
+.details { position: fixed; z-index: 10; right: 1rem; top: calc(env(safe-area-inset-top, 0px) + 1rem); width: min(23rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow-y: auto; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 18px; padding: 1.25rem 1.25rem 1.4rem; display: flex; flex-direction: column; gap: 0.85rem; box-shadow: 0 18px 48px rgba(12, 32, 40, 0.22); }
+@media (max-width: 700px) { .details { top: auto; left: 0.75rem; right: 0.75rem; bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem); width: auto; max-height: 60vh; } }
+.details-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.details-close { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 99px; padding: 0.3rem 0.75rem; cursor: pointer; font: 600 0.8rem/1.2 var(--font-display); color: var(--muted); }
+.details-close:hover { color: var(--ink); border-color: var(--ref); }
+.details h2 { margin: 0; font: 700 1.35rem/1.2 var(--font-display); text-wrap: balance; }
+.details h3 { margin: 0; font: 700 0.75rem/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.details p { margin: 0; font-size: 0.95rem; }
+.details .block { display: flex; flex-direction: column; gap: 0.3rem; }
+.chip { align-self: flex-start; padding: 0.3em 0.65em; border-radius: 99px; font: 700 0.72rem/1 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+.chip-built { background: var(--ok-soft); color: var(--ok); }
+.chip-partly { background: var(--brand-soft); color: var(--ref); }
+.chip-todo { background: var(--warn-soft); color: var(--warn); }
+.chip-ext { background: var(--zone); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.hint { font-size: 0.875rem; color: var(--muted); }
+
+/* SVG parts */
+.zone rect { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 5 5; fill: var(--zone); }
+.zone.brand rect { fill: var(--zone-brand); stroke: var(--ref); stroke-dasharray: none; stroke-opacity: 0.55; }
+.z-label { fill: var(--muted); font: 700 12px var(--font-display); letter-spacing: 0.1em; }
+.zone.brand .z-label { fill: var(--ref); }
+.z-sub { fill: var(--muted); font: 400 11.5px var(--font-body); }
+.node { cursor: pointer; }
+.node rect { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; transition: stroke 0.15s ease, fill 0.15s ease; }
+.node:hover rect, .node:focus-visible rect { stroke: var(--ref); stroke-width: 2; }
+.node:focus { outline: none; }
+.node.sel rect { fill: var(--brand-soft); stroke: var(--ref); stroke-width: 2.5; }
+.n-title { fill: var(--ink); font: 700 14px var(--font-display); }
+.n-sub { fill: var(--muted); font: 400 11.5px var(--font-body); }
+.edge { fill: none; stroke-linejoin: round; transition: opacity 0.15s ease; }
+.e-phi { stroke: var(--phi); stroke-width: 2.6; }
+.e-ref { stroke: var(--ref); stroke-width: 2; }
+.e-none { stroke: var(--none); stroke-width: 2; stroke-dasharray: 7 5; }
+.e-watch { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 2 4; }
+.mk-phi { fill: var(--phi); } .mk-ref { fill: var(--ref); } .mk-none { fill: var(--none); } .mk-watch { fill: var(--muted); }
+.elabel { fill: var(--ink); font: 600 11.5px var(--font-body); paint-order: stroke; stroke: var(--zone-brand); stroke-width: 5px; stroke-linejoin: round; }
+.elabel.on-zone { stroke: var(--zone); }
+.badge { cursor: pointer; transition: opacity 0.15s ease; }
+.badge circle { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+.badge text { fill: var(--surface); font: 700 11px var(--font-mono); }
+.badge:focus { outline: none; }
+.badge:focus-visible circle { stroke: var(--ref); stroke-width: 3; }
+svg.focusing .edge:not(.on), svg.focusing .elabel:not(.on) { opacity: 0.12; }
+svg.focusing .badge:not(.on) { opacity: 0.3; }
+@media (prefers-reduced-motion: reduce) { .node rect, .edge, .badge { transition: none; } }
+
+/* Lower sections */
+.lower { display: grid; grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: 1.25rem; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 1.25rem 1.35rem 1.4rem; display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; }
+.panel h2 { margin: 0; font: 700 1.25rem/1.25 var(--font-display); }
+.panel p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; counter-reset: step; }
+.steps button { width: 100%; text-align: left; display: grid; grid-template-columns: 1.9rem minmax(0, 1fr); gap: 0.6rem; align-items: start; padding: 0.5rem 0.55rem; border: 0; border-radius: 10px; background: transparent; cursor: pointer; font-size: 0.95rem; line-height: 1.5; }
+.steps button:hover, .steps button[aria-pressed="true"] { background: var(--zone-brand); }
+.steps .num { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--ink); color: var(--surface); font: 700 0.75rem/1 var(--font-mono); margin-top: 0.05rem; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; line-height: 1.45; }
+th { text-align: left; padding: 0.6rem 0.8rem; background: var(--zone); border-bottom: 1px solid var(--line); font: 700 0.7rem/1.3 var(--font-display); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+td { padding: 0.6rem 0.8rem; border-top: 1px solid var(--line); vertical-align: top; }
+tbody tr:first-child td { border-top: 0; }
+td:first-child { font-weight: 700; }
+.yes { color: var(--phi); font-weight: 700; }
+.no { color: var(--ok); font-weight: 700; }
+.questions { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.95rem; }
+.questions li::marker { color: var(--muted); }
+.foot { font-size: 0.85rem; color: var(--muted); margin: 0; }
+code { font: 0.86em var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="head">
+    <div class="head-text">
+      <p class="eyebrow">BloodLine</p>
+      <h1>System design</h1>
+      <p class="lede">How a pathology result travels from the lab to the GP's phone, which parts talk to each other, and where patient details are kept and where they never go.</p>
+    </div>
+    <div class="views" role="group" aria-label="Which system to show">
+      <button type="button" id="view-production" aria-pressed="true">Production plan</button>
+      <button type="button" id="view-demo" aria-pressed="false">Demo today</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <figure class="map">
+      <p class="intro" id="intro"></p>
+      <ul class="legend" aria-label="What the lines carry">
+        <li><svg viewBox="0 0 40 12" aria-hidden="true"><line x1="2" y1="6" x2="38" y2="6" class="edge e-phi"/></svg><span><b>Patient details</b> in transit or in memory</span></li>
+        <li><svg viewBox="0 0 40 12" aria-hidden="true"><line x1="2" y1="6" x2="38" y2="6" class="edge e-ref"/></svg><span><b>Reference IDs only</b></span></li>
+        <li><svg viewBox="0 0 40 12" aria-hidden="true"><line x1="2" y1="6" x2="38" y2="6" class="edge e-none"/></svg><span><b>No patient details</b></span></li>
+        <li><svg viewBox="0 0 40 12" aria-hidden="true"><circle cx="20" cy="6" r="5.5" style="fill: var(--ink)"/></svg><span>Numbered steps match the list below</span></li>
+      </ul>
+      <p class="status-key">Pick any part of the map to see what it does, what it keeps and its status: <span class="chip chip-built">Built</span><span class="chip chip-partly">Partly built</span><span class="chip chip-todo">To build</span><span class="chip chip-ext">Partner</span></p>
+      <div class="scroll"><svg id="diagram" role="img" aria-label=""></svg></div>
+      <figcaption id="caption"></figcaption>
+    </figure>
+
+    <aside class="details" id="details" aria-live="polite" hidden></aside>
+  </div>
+
+  <div class="lower">
+    <section class="panel" aria-labelledby="steps-h">
+      <h2 id="steps-h">Step by step</h2>
+      <p>Pick a step to highlight its path on the map.</p>
+      <ol class="steps" id="steps"></ol>
+    </section>
+
+    <section class="panel" id="data-panel" aria-labelledby="data-h">
+      <h2 id="data-h">Where patient details live</h2>
+      <p>The practice software stays the official record. BloodLine keeps only what an alert needs.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Place</th><th scope="col">Patient details?</th><th scope="col">For how long</th></tr></thead>
+          <tbody>
+            <tr><td>Practice software</td><td><span class="yes">Yes</span>, the official record</td><td>The practice's own policy</td></tr>
+            <tr><td>Halo Connect</td><td><span class="yes">In transit</span></td><td>Not stored by BloodLine</td></tr>
+            <tr><td>BloodLine servers</td><td><span class="yes">In memory</span> while checking, and during a lookup</td><td>Not stored</td></tr>
+            <tr><td>BloodLine database</td><td><span class="no">Reference IDs only</span>, plus alerts, "Seen" times and GP rules. Proposed: the values behind each check (Q32)</td><td>A period agreed with each practice</td></tr>
+            <tr><td>Report PDFs</td><td><span class="yes">Read</span>, then deleted</td><td>Straight away, or a short agreed period</td></tr>
+            <tr><td>Messaging providers</td><td><span class="no">None</span></td><td>No patient details to keep</td></tr>
+            <tr><td>GP's phone</td><td><span class="yes">Shown</span> on screen</td><td>Not saved to the phone</td></tr>
+            <tr><td>Audit log</td><td>Who viewed which patient, and when</td><td>A period agreed with each practice</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="change-h">
+      <h2 id="change-h">What changes from the demo</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Part</th><th scope="col">Demo today</th><th scope="col">Production plan</th></tr></thead>
+          <tbody>
+            <tr><td>Results in</td><td>Synthetic PDFs from the simulator or an upload</td><td>Practice software through Halo Connect, structured data first</td></tr>
+            <tr><td>Reading reports</td><td>OCR through OpenRouter, providers outside Australia</td><td>A secure, Australian-hosted OCR service, as a fallback only</td></tr>
+            <tr><td>Storage</td><td>SQLite file and report folder on the laptop</td><td>Encrypted Postgres in an Australian region, split by practice</td></tr>
+            <tr><td>Sign-in</td><td>Pick a GP, no password</td><td>Real sign-in with MFA, limited to the GP's practice</td></tr>
+            <tr><td>Alerts to the phone</td><td>App polls every 4 seconds while open</td><td>Push notifications through Firebase</td></tr>
+            <tr><td>Processing</td><td>Inside the request</td><td>A job queue with retries</td></tr>
+            <tr><td>Email, SMS, calls</td><td>Resend and Twilio, simulated unless switched on</td><td>Our own email domain and an Australian sender number, with delivery tracking</td></tr>
+            <tr><td>Hosting</td><td>A laptop and a Cloudflare quick tunnel</td><td>Australian hosting, with monitoring and alerting</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="open-h">
+      <h2 id="open-h">Still to confirm</h2>
+      <ol class="questions">
+        <li><b>Can approved partners read pathology results</b> through Halo Connect, with values, units, flags, ranges and amendments? (PRD Q24)</li>
+        <li><b>Does Halo notify us</b> when a new result arrives, or do we poll? (PRD §13.5)</li>
+        <li><b>What the GP sees if the practice is offline.</b> Today's answer: the alert and the reference ID, then the practice software. Is a short-lived encrypted cache acceptable? (PRD Q33)</li>
+        <li><b>How long to keep the values behind each check</b>, so an alert, or a missing one, can be explained later. (PRD Q32)</li>
+        <li><b>Halo Connect's per-practice fee</b>, which isn't published.</li>
+      </ol>
+      <p class="foot">Sources: PRD §10, §11.7 and §13, and the demo's code in <code>web/src/server</code> and <code>mobile/src</code>.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const VIEWS = {
+    production: {
+      size: [1360, 790],
+      label: "Production plan: results flow from the practice software through Halo Connect to BloodLine in an Australian region; nudges without patient details go out through messaging providers; the GP app fetches patient details live through BloodLine's API.",
+      caption: "Production plan. Patient details move along the orange lines but are never stored by BloodLine: the database keeps reference IDs, and the phone fetches details live when the GP opens an alert. Messaging providers only ever see a nudge.",
+      intro: { title: "Production plan", text: "Results stay in the practice software. BloodLine reads each new result through Halo Connect, checks it, and keeps only what an alert needs. Pick any part of the map to see what it does and what it keeps." },
+      zones: [
+        { x: 16, y: 40, w: 224, h: 730, label: "PRACTICE", sub: "on site, or Bp Omni cloud" },
+        { x: 256, y: 40, w: 168, h: 730, label: "HALO CONNECT", sub: "integration partner" },
+        { x: 440, y: 40, w: 680, h: 730, label: "BLOODLINE", sub: "hosted in an Australian region", brand: true },
+        { x: 1136, y: 40, w: 208, h: 400, label: "MESSAGING", sub: "no patient details" },
+        { x: 1136, y: 456, w: 208, h: 314, label: "PEOPLE", sub: "signed in with MFA" },
+      ],
+      nodes: [
+        { id: "lab", x: 36, y: 110, w: 184, h: 72, t: "Pathology lab", s: ["sends results as today"] },
+        { id: "pms", x: 36, y: 300, w: 184, h: 72, t: "Practice software", s: ["Best Practice first", "MedicalDirector later"] },
+        { id: "agent", x: 36, y: 500, w: 184, h: 72, t: "Halo Link agent", s: ["runs at the practice"] },
+        { id: "halo", x: 272, y: 110, w: 136, h: 590, t: "Halo Connect API", s: ["REST · FHIR", "approved partners", "only"], top: true },
+        { id: "integration", x: 458, y: 110, w: 104, h: 84, t: "Integration", s: ["picks up new", "results"] },
+        { id: "queue", x: 592, y: 110, w: 104, h: 84, t: "Job queue", s: ["retries every", "step"] },
+        { id: "reader", x: 726, y: 110, w: 104, h: 84, t: "Result reader", s: ["structured first", "OCR fallback"] },
+        { id: "checks", x: 860, y: 110, w: 104, h: 84, t: "Checks", s: ["flag · range", "GP rules"] },
+        { id: "routing", x: 994, y: 110, w: 104, h: 84, t: "Routing", s: ["GP, rule owner", "or their cover"] },
+        { id: "db", x: 592, y: 340, w: 372, h: 72, t: "Database", s: ["Postgres, encrypted, split by practice", "reference IDs · rules · alerts · Seen times"] },
+        { id: "notify", x: 994, y: 340, w: 104, h: 72, t: "Notifications", s: ["retries, delivery", "tracking"] },
+        { id: "lookup", x: 458, y: 520, w: 104, h: 72, t: "Live lookup", s: ["fetch on open", "store nothing"] },
+        { id: "audit", x: 726, y: 520, w: 104, h: 72, t: "Audit log", s: ["append-only", "every lookup"] },
+        { id: "monitoring", x: 994, y: 520, w: 104, h: 72, t: "Monitoring", s: ["feeds, failures", "health"] },
+        { id: "api", x: 458, y: 650, w: 640, h: 60, t: "API", s: ["sign-in with MFA · access limited to the GP's own practice"] },
+        { id: "push", x: 1152, y: 100, w: 176, h: 64, t: "Push", s: ["Firebase"] },
+        { id: "sms", x: 1152, y: 200, w: 176, h: 64, t: "SMS and calls", s: ["Twilio, AU number"] },
+        { id: "email", x: 1152, y: 300, w: 176, h: 64, t: "Email", s: ["our own domain"] },
+        { id: "gp", x: 1152, y: 520, w: 176, h: 72, t: "GP app", s: ["iOS and Android"] },
+        { id: "dashboard", x: 1152, y: 650, w: 176, h: 72, t: "Practice dashboard", s: ["unseen alerts · audit"] },
+      ],
+      edges: [
+        { c: "phi", step: 1, pts: [[128, 182], [128, 300]], label: [138, 250, "results (HL7)", "start", "zone"] },
+        { c: "phi", step: 2, pts: [[128, 372], [128, 500]], label: [138, 452, "new result", "start", "zone"] },
+        { c: "phi", step: 2, pts: [[220, 536], [272, 536]] },
+        { c: "phi", step: 3, pts: [[408, 152], [458, 152]] },
+        { c: "phi", step: 4, pts: [[562, 152], [592, 152]] },
+        { c: "phi", step: 4, pts: [[696, 152], [726, 152]] },
+        { c: "phi", step: 5, pts: [[830, 152], [860, 152]] },
+        { c: "phi", step: 5, pts: [[964, 152], [994, 152]] },
+        { c: "ref", step: 6, pts: [[1020, 194], [1020, 280], [800, 280], [800, 340]], label: [912, 272, "alert: IDs only", "middle"] },
+        { c: "none", step: 7, pts: [[1072, 194], [1072, 340]], label: [1080, 236, "nudge", "start"] },
+        { c: "none", step: 7, pts: [[1098, 376], [1140, 376], [1140, 132], [1152, 132]] },
+        { c: "none", step: 7, pts: [[1140, 232], [1152, 232]] },
+        { c: "none", step: 7, pts: [[1140, 332], [1152, 332]] },
+        { c: "none", step: 7, pts: [[1240, 364], [1240, 520]], label: [1248, 480, "nudge", "start", "zone"] },
+        { c: "phi", step: 8, both: true, pts: [[1152, 556], [1128, 556], [1128, 680], [1098, 680]], label: [1120, 640, "opens alert", "end"] },
+        { c: "phi", step: 9, both: true, pts: [[510, 650], [510, 592]] },
+        { c: "phi", step: 9, both: true, pts: [[458, 556], [408, 556]], label: [433, 544, "details", "middle"] },
+        { c: "ref", step: 10, pts: [[778, 650], [778, 592]], label: [792, 626, "every lookup", "start"] },
+        { c: "ref", step: 11, pts: [[930, 650], [930, 412]], label: [944, 562, "Seen", "start"] },
+        { c: "ref", step: 11, pts: [[1152, 700], [1098, 700]] },
+        { c: "watch", pts: [[1046, 520], [1046, 412]], label: [1054, 472, "watches", "start"] },
+      ],
+      badges: [[1, 128, 210], [2, 128, 410], [3, 433, 152], [4, 577, 128], [5, 845, 128], [6, 800, 312], [7, 1072, 300], [8, 1128, 604], [9, 510, 621], [10, 778, 621], [11, 930, 612]],
+      steps: [
+        "The lab sends a result to the practice software, as it does today.",
+        "The Halo Link agent makes the new result available through Halo Connect.",
+        "BloodLine's integration service picks it up: the patient's reference ID and the values. Duplicates are ignored.",
+        "A queued job reads the result: structured values first, secure OCR only as a fallback. Failed steps are retried, never dropped.",
+        "The checks engine validates every field and runs the three checks: lab flag, printed range, the GP's rules. Anything it can't check becomes \"couldn't check\".",
+        "Routing writes one alert per result per GP, listing every reason, to the database. Reference IDs only.",
+        "The notification service sends one nudge with no patient details, by push, SMS, call or email.",
+        "The GP signs in with MFA and opens the alert.",
+        "Live lookup fetches the patient's details and report from the practice software and passes them to the app. Nothing is stored.",
+        "Every lookup is written to the audit log: who viewed which patient, and when.",
+        "The GP marks the alert seen, and the practice dashboard shows it.",
+      ],
+      details: {
+        lab: { chip: ["ext", "No change"], does: "Sends results to the practice exactly as it does today. Labs change nothing: BloodLine connects where results already land.", keeps: "Nothing for BloodLine." },
+        pms: { chip: ["ext", "Partner"], does: "The practice's clinical software: Bp Premier on site or Bp Omni in the cloud first, MedicalDirector later through a separate partner agreement. It is the official clinical record.", keeps: "Everything: names, dates of birth, results, history and report PDFs. BloodLine reads from it and never replaces it.", note: "Access needs the Best Practice Partner Network's application and review." },
+        agent: { chip: ["ext", "Partner"], does: "Small software at the practice that links the practice software's database to Halo's cloud. Practices get it with their Bp Premier subscription, and Halo monitors it for outages.", keeps: "Nothing for BloodLine." },
+        halo: { chip: ["todo", "Partner, to confirm"], does: "Lets approved partners read practice data through web APIs (REST and FHIR). It is the only way to connect to Bp Omni, and Bp Premier integrations are moving to it.", keeps: "BloodLine stores nothing here.", note: "To confirm: read access to pathology values, units, flags, ranges and amendments; event notifications or polling; the per-practice fee." },
+        integration: { chip: ["todo", "To build"], does: "Picks up each new result for every connected practice: the patient's reference ID, the values and the message ID. Ignores duplicates by message ID and logs failed or missing feeds.", keeps: "Message IDs, for duplicate detection." },
+        queue: { chip: ["todo", "To build"], does: "Turns each result into a job that is retried if a step fails, so a result is never silently dropped. A result that still can't be processed becomes a \"couldn't check\" alert.", keeps: "Jobs in flight only." },
+        reader: { chip: ["partly", "Partly built"], does: "Uses structured values from the practice software first. Reports that arrive only as PDFs go to a secure, Australian-hosted OCR service, which copies what's printed and interprets nothing.", keeps: "Nothing. Report PDFs are deleted after reading.", note: "The demo reads PDFs with OCR through OpenRouter, on synthetic data only." },
+        checks: { chip: ["built", "Built in the demo"], does: "Deterministic code. Validates every field (a plain number, a readable printed range, a known test, the expected unit), then runs the three checks: the lab's flag, a value outside the printed range, and the GP's own rules.", keeps: "The outcome of every check, alerting or not. Proposed: the values behind it, for a set period (Q32).", note: "Covered by 73 tests in the demo." },
+        routing: { chip: ["built", "Built in the demo"], does: "Sends lab-flag, range and couldn't-check alerts to the requesting GP, and rule matches to the rule's owner. If a GP is away, the alert goes to their covering colleague, one step only. One alert per result per GP, with every reason.", keeps: "Alerts, with the original GP and the recipient." },
+        db: { chip: ["todo", "To build"], does: "Postgres in an Australian region, encrypted, with access split by practice.", keeps: "Patient reference IDs, GP rules, alerts, Seen times, a masked message log and message IDs. Not names, dates of birth, result history or PDFs.", note: "The demo uses a SQLite file on the laptop that stores everything, which is only acceptable because the data is synthetic." },
+        notify: { chip: ["partly", "Partly built"], does: "Sends one nudge per GP per report on the channels the GP chose: \"You have 1 new result to review. Open the app.\" Retries failures and tracks delivery; failures show on the dashboard.", keeps: "A message log with masked numbers." },
+        lookup: { chip: ["todo", "To build"], does: "When the GP opens an alert, fetches the patient's name, date of birth, result, history and report from the practice software through Halo, and passes them to the app.", keeps: "Nothing.", note: "If the practice is offline, the GP sees the alert and reference ID and checks the practice software (Q33)." },
+        audit: { chip: ["partly", "Partly built"], does: "Records every lookup (who viewed which patient, and when) plus alerts, deliveries, Seen and rule changes. Append-only, so entries can't be edited.", keeps: "The audit trail, for a period agreed with each practice.", note: "The demo writes an audit trail; protecting it from edits is still to build." },
+        monitoring: { chip: ["todo", "To build"], does: "Watches each practice's feed for missing or delayed results, integration and delivery failures, and system health, and alerts the team.", keeps: "Operational metrics, with no patient details." },
+        api: { chip: ["todo", "To build"], does: "The only way in for the app and dashboard. Every request is signed in with MFA and limited to the user's own practice, with input validation and rate limits.", keeps: "Nothing itself.", note: "The demo validates every input but has no sign-in." },
+        push: { chip: ["todo", "To build"], does: "Delivers the nudge to the phone even when the app is closed.", keeps: "No patient details reach it.", note: "The demo shows a local notification only while the app is open." },
+        sms: { chip: ["partly", "Partly built"], does: "Texts and calls the GP from an Australian sender number, with delivery tracking.", keeps: "No patient details reach it." },
+        email: { chip: ["partly", "Partly built"], does: "Emails the nudge from BloodLine's own domain, with delivery tracking.", keeps: "No patient details reach it." },
+        gp: { chip: ["partly", "Partly built"], does: "Shows the alert, the reasons, the printed range, the lab's comment, the trend and the original report, then lets the GP mark it seen. Patient details load live and aren't saved to the phone.", keeps: "Nothing on the phone.", note: "Built today with Expo; MFA sign-in and push are still to add." },
+        dashboard: { chip: ["partly", "Partly built"], does: "For practice managers: unseen alerts, deliveries and the audit trail, which helps evidence the accreditation follow-up criterion.", keeps: "Nothing itself.", note: "The demo has a presenter console that covers part of this." },
+      },
+    },
+
+    demo: {
+      size: [1360, 700],
+      label: "Demo today: the presenter's laptop runs the console, the API, the pipeline and a SQLite file; OCR goes to OpenRouter; nudges go out through Resend and Twilio; the GP app reaches the laptop through a Cloudflare quick tunnel.",
+      caption: "Demo today. Everything runs on the presenter's laptop and every patient is synthetic. The orange lines show where real patient details would travel, which is why OpenRouter and the laptop's SQLite file are replaced in production.",
+      intro: { title: "Demo today", text: "What's built and running now, on synthetic data. The checking, routing and alerting logic is the same code production will use. Pick any part of the map to see what it does." },
+      zones: [
+        { x: 16, y: 40, w: 224, h: 300, label: "PRESENTER", sub: "in the laptop's browser" },
+        { x: 256, y: 40, w: 640, h: 480, label: "PRESENTER'S LAPTOP", sub: "stores everything; synthetic data only", brand: true },
+        { x: 912, y: 40, w: 432, h: 480, label: "INTERNET SERVICES", sub: "outside the laptop" },
+        { x: 256, y: 540, w: 640, h: 150, label: "CLOUDFLARE", sub: "" },
+        { x: 912, y: 540, w: 432, h: 150, label: "GP'S PHONE", sub: "" },
+      ],
+      nodes: [
+        { id: "console", x: 36, y: 180, w: 184, h: 72, t: "Presenter console", s: ["upload · watch · reset"] },
+        { id: "events", x: 276, y: 100, w: 184, h: 72, t: "Event stream", s: ["live steps (SSE)"] },
+        { id: "dapi", x: 276, y: 260, w: 184, h: 72, t: "API routes", s: ["Next.js · Zod · no sign-in"] },
+        { id: "pipeline", x: 520, y: 260, w: 200, h: 84, t: "Pipeline", s: ["hash · cache · checks", "route · alert · audit"] },
+        { id: "sqlite", x: 520, y: 420, w: 200, h: 72, t: "SQLite + report folder", s: ["names, results, PDFs"] },
+        { id: "openrouter", x: 940, y: 100, w: 380, h: 72, t: "OCR via OpenRouter", s: ["new PDFs only · providers outside Australia"] },
+        { id: "resend", x: 940, y: 220, w: 180, h: 64, t: "Email", s: ["Resend"] },
+        { id: "twilio", x: 940, y: 330, w: 180, h: 64, t: "SMS and calls", s: ["Twilio"] },
+        { id: "live", x: 1140, y: 220, w: 180, h: 174, t: "Live messages", s: ["off: logged as", "simulated", "on: real email,", "SMS and calls"], top: true },
+        { id: "tunnel", x: 520, y: 590, w: 200, h: 72, t: "Quick tunnel", s: ["public HTTPS address"] },
+        { id: "gpapp", x: 940, y: 590, w: 380, h: 72, t: "GP app (Expo Go)", s: ["polls every 4 s · local notification"] },
+      ],
+      edges: [
+        { c: "phi", step: 1, pts: [[220, 216], [246, 216], [246, 296], [276, 296]] },
+        { c: "phi", step: 2, pts: [[460, 296], [520, 296]] },
+        { c: "phi", step: 3, pts: [[640, 260], [640, 136], [940, 136]], label: [800, 126, "new PDFs only", "middle", "zone"] },
+        { c: "phi", step: 4, pts: [[620, 344], [620, 420]], label: [632, 400, "stores all", "start"] },
+        { c: "phi", step: 5, pts: [[560, 260], [560, 136], [460, 136]] },
+        { c: "phi", step: 5, pts: [[276, 136], [128, 136], [128, 180]], label: [200, 126, "live steps", "middle", "zone"] },
+        { c: "none", step: 6, pts: [[720, 302], [920, 302], [920, 252], [940, 252]], label: [820, 292, "nudges", "middle"] },
+        { c: "none", step: 6, pts: [[920, 302], [920, 362], [940, 362]] },
+        { c: "none", step: 6, pts: [[1030, 394], [1030, 590]], label: [1038, 500, "nudge", "start", "zone"] },
+        { c: "phi", step: 7, both: true, pts: [[940, 626], [720, 626]], label: [830, 614, "alerts, reports", "middle", "zone"] },
+        { c: "phi", step: 7, both: true, pts: [[520, 626], [368, 626], [368, 332]], label: [380, 470, "every 4 s", "start"] },
+      ],
+      badges: [[1, 246, 256], [2, 490, 296], [3, 690, 136], [4, 620, 372], [5, 510, 136], [6, 880, 302], [7, 760, 626]],
+      steps: [
+        "The presenter sends a synthetic report, or uploads a PDF, from the console.",
+        "The API checks the input and hands it to the pipeline, which stores the PDF under its hash.",
+        "A new PDF goes to OCR on OpenRouter. A PDF read before comes from the cache, free and instant.",
+        "The pipeline validates every field, runs the three checks, routes, and writes results, alerts and the audit trail to SQLite.",
+        "Each step streams live to the console.",
+        "Nudges go out by email, SMS and call with no patient details, or are logged as simulated while Live messages is off.",
+        "The GP app reaches the laptop through the Cloudflare tunnel: it polls every 4 seconds, opens alerts and reports, and marks them seen.",
+      ],
+      details: {
+        console: { chip: ["built", "Built"], does: "The presenter's page: send a quick scenario or upload a PDF, watch the live pipeline and OCR reading, see deliveries and the records, and reset the demo.", keeps: "Nothing itself." },
+        events: { chip: ["built", "Built"], does: "Server-Sent Events from the API to the console: each pipeline step, alert and message as it happens.", keeps: "Nothing." },
+        dapi: { chip: ["built", "Built"], does: "Next.js route handlers. Every input is validated. The simulator, upload, reset and Live messages switch only answer requests from the laptop itself.", keeps: "Nothing itself.", note: "No sign-in: the app picks a GP from a list. Production adds MFA sign-in and per-practice access." },
+        pipeline: { chip: ["built", "Built"], does: "Stores the PDF under its hash, reuses the OCR cache, validates each field, runs the three checks, routes alerts, sends nudges and writes the audit trail.", keeps: "Writes everything to SQLite.", note: "The checks and routing are the same code production will use." },
+        sqlite: { chip: ["built", "Built"], does: "The demo database and report folder in web/data, kept out of git.", keeps: "Everything: synthetic names, dates of birth, results, alerts, the audit trail and report PDFs.", note: "Only acceptable because the data is synthetic. Production keeps reference IDs only." },
+        openrouter: { chip: ["partly", "Replaced in production"], does: "Reads each new report PDF into fields. Copies what's printed; interprets nothing. Results are cached by file hash, so a PDF is only ever read once.", keeps: "Requests go to providers outside Australia.", note: "Synthetic data only. Before the final product this moves to a secure, Australian-hosted OCR service." },
+        resend: { chip: ["built", "Built"], does: "Sends the nudge email.", keeps: "No patient details reach it." },
+        twilio: { chip: ["built", "Built"], does: "Sends the nudge SMS and places the call.", keeps: "No patient details reach it." },
+        live: { chip: ["built", "Built"], does: "A switch on the presenter's console. While it's off, every email, SMS and call is logged as simulated; real messages only go out when it's on and the provider keys are set.", keeps: "One setting." },
+        tunnel: { chip: ["built", "Built"], does: "Gives the laptop a public HTTPS address so the phone can reach it from any network. The address changes each run.", keeps: "Nothing." },
+        gpapp: { chip: ["built", "Built"], does: "The GP picks their name, sees alerts (checked every 4 seconds while the app is open), gets a local notification and a buzz, opens the alert and report, and marks it seen.", keeps: "The server address and the chosen GP.", note: "Production adds MFA sign-in, push notifications and live lookups." },
+      },
+    },
+  };
+
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("diagram");
+  const detailsEl = document.getElementById("details");
+  const stepsEl = document.getElementById("steps");
+  const dataPanel = document.getElementById("data-panel");
+  const buttons = { production: document.getElementById("view-production"), demo: document.getElementById("view-demo") };
+  let current = "production";
+  let selected = null;
+  let focusedStep = null;
+
+  const el = (name, attrs = {}, parent) => {
+    const node = document.createElementNS(NS, name);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    parent?.appendChild(node);
+    return node;
+  };
+  const text = (parent, x, y, value, cls, anchor = "start") => {
+    const t = el("text", { x, y, class: cls, "text-anchor": anchor }, parent);
+    t.textContent = value;
+    return t;
+  };
+  const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  function render() {
+    const view = VIEWS[current];
+    svg.replaceChildren();
+    svg.setAttribute("viewBox", `0 0 ${view.size[0]} ${view.size[1]}`);
+    svg.setAttribute("aria-label", view.label);
+    document.getElementById("caption").textContent = view.caption;
+    document.getElementById("intro").textContent = view.intro.text;
+    dataPanel.hidden = current !== "production";
+
+    const defs = el("defs", {}, svg);
+    for (const c of ["phi", "ref", "none", "watch"]) {
+      const m = el("marker", { id: `m-${c}`, viewBox: "0 0 10 10", refX: "8.5", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", markerUnits: "userSpaceOnUse" }, defs);
+      m.setAttribute("markerWidth", "9");
+      m.setAttribute("markerHeight", "9");
+      el("path", { d: "M0,0 L10,5 L0,10 z", class: `mk-${c}` }, m);
+    }
+
+    for (const z of view.zones) {
+      const g = el("g", { class: `zone${z.brand ? " brand" : ""}` }, svg);
+      el("rect", { x: z.x, y: z.y, width: z.w, height: z.h, rx: 16 }, g);
+      text(g, z.x + 14, z.y + 22, z.label, "z-label");
+      if (z.sub) text(g, z.x + 14, z.y + 38, z.sub, "z-sub");
+    }
+
+    for (const e of view.edges) {
+      const p = el("polyline", { points: e.pts.map((pt) => pt.join(",")).join(" "), class: `edge e-${e.c}`, "marker-end": `url(#m-${e.c})` }, svg);
+      if (e.both) p.setAttribute("marker-start", `url(#m-${e.c})`);
+      if (e.step) p.dataset.step = e.step;
+    }
+
+    for (const n of view.nodes) {
+      const g = el("g", { class: `node${selected === n.id ? " sel" : ""}`, tabindex: "0", role: "button", "aria-label": `${n.t}: ${n.s.join(", ")}` }, svg);
+      g.dataset.id = n.id;
+      el("rect", { x: n.x, y: n.y, width: n.w, height: n.h, rx: 12 }, g);
+      const cx = n.x + n.w / 2;
+      const lines = n.s.length;
+      const block = 18 + lines * 15;
+      let y = n.top ? n.y + 30 : n.y + (n.h - block) / 2 + 15;
+      text(g, cx, y, n.t, "n-title", "middle");
+      for (const s of n.s) {
+        y += 16;
+        text(g, cx, y, s, "n-sub", "middle");
+      }
+      g.addEventListener("click", () => select(n.id));
+      g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(n.id); } });
+    }
+
+    for (const e of view.edges) {
+      if (!e.label) continue;
+      const [x, y, value, anchor, ground] = e.label;
+      const t = text(svg, x, y, value, `elabel${ground === "zone" ? " on-zone" : ""}`, anchor);
+      if (e.step) t.dataset.step = e.step;
+    }
+
+    for (const [n, x, y] of view.badges) {
+      const g = el("g", { class: "badge", tabindex: "0", role: "button", "aria-label": `Step ${n}: ${view.steps[n - 1]}` }, svg);
+      g.dataset.step = n;
+      el("circle", { cx: x, cy: y, r: 11 }, g);
+      text(g, x, y + 4, String(n), "", "middle");
+      g.addEventListener("click", () => toggleStep(n));
+      g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggleStep(n); } });
+    }
+
+    stepsEl.replaceChildren();
+    view.steps.forEach((s, i) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", "false");
+      b.dataset.step = i + 1;
+      b.innerHTML = `<span class="num">${i + 1}</span><span>${escapeHtml(s)}</span>`;
+      b.addEventListener("click", () => toggleStep(i + 1));
+      b.addEventListener("mouseenter", () => highlight(i + 1));
+      b.addEventListener("mouseleave", () => highlight(focusedStep));
+      li.appendChild(b);
+      stepsEl.appendChild(li);
+    });
+
+    renderDetails();
+    highlight(focusedStep);
+  }
+
+  function highlight(step) {
+    svg.classList.toggle("focusing", Boolean(step));
+    svg.querySelectorAll("[data-step]").forEach((node) => node.classList.toggle("on", Number(node.dataset.step) === step));
+    stepsEl.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.step) === focusedStep)));
+  }
+
+  function toggleStep(step) {
+    focusedStep = focusedStep === step ? null : step;
+    highlight(focusedStep);
+  }
+
+  function select(id) {
+    selected = selected === id ? null : id;
+    svg.querySelectorAll(".node").forEach((g) => g.classList.toggle("sel", g.dataset.id === selected));
+    renderDetails();
+  }
+
+  function renderDetails() {
+    const view = VIEWS[current];
+    if (!selected || !view.details[selected]) {
+      detailsEl.hidden = true;
+      detailsEl.replaceChildren();
+      return;
+    }
+    const node = view.nodes.find((n) => n.id === selected);
+    const d = view.details[selected];
+    detailsEl.hidden = false;
+    detailsEl.innerHTML = `<div class="details-top"><span class="chip chip-${d.chip[0]}">${escapeHtml(d.chip[1])}</span><button type="button" class="details-close">Close</button></div>
+      <h2>${escapeHtml(node.t)}</h2>
+      <div class="block"><h3>What it does</h3><p>${escapeHtml(d.does)}</p></div>
+      <div class="block"><h3>What it keeps</h3><p>${escapeHtml(d.keeps)}</p></div>
+      ${d.note ? `<div class="block"><h3>Note</h3><p>${escapeHtml(d.note)}</p></div>` : ""}`;
+    detailsEl.querySelector(".details-close").addEventListener("click", () => select(selected));
+  }
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && selected) select(selected); });
+
+  function setView(name) {
+    current = name;
+    selected = null;
+    focusedStep = null;
+    for (const [k, b] of Object.entries(buttons)) b.setAttribute("aria-pressed", String(k === name));
+    render();
+  }
+  buttons.production.addEventListener("click", () => setView("production"));
+  buttons.demo.addEventListener("click", () => setView("demo"));
+  if (location.hash === "#demo") current = "demo", buttons.production.setAttribute("aria-pressed", "false"), buttons.demo.setAttribute("aria-pressed", "true");
+  render();
+})();
+</script>
+
+</html>

@@ -1,6 +1,6 @@
 // Renders a synthetic pathology report as a PDF.
 // Output is byte-identical for the same input (fixed metadata dates, no
-// random ids), so the AI extraction cache keyed by file hash keeps working.
+// random ids), so the OCR cache keyed by file hash keeps working.
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
 export interface SyntheticReportRow {

@@ -51,9 +51,9 @@ If BloodLine can't check a result cleanly, it tells the GP. It never stays silen
 
 **Tagline:** "The lab makes sure the result arrives. BloodLine makes sure the GP knows." (Changed from "makes sure someone acts on it", which overstated what the product does; see Q31 and §17.5.)
 
-**The demo.** A 12-hour hackathon build for investors. Everything runs on the presenter's laptop. A web page labelled "Practice system (simulated)" sends synthetic lab report PDFs. An AI model transcribes each PDF into fields. Plain, deterministic code checks those fields. The GP's Android app shows the alert. Email, SMS and a voice call tell the GP to open the app, with no patient details. The GP reviews the result next to the original report and taps "Seen". A web dashboard shows every check, message and action.
+**The demo.** A 12-hour hackathon build for investors. Everything runs on the presenter's laptop. A web page labelled "Practice system (simulated)" sends synthetic lab report PDFs. OCR transcribes each PDF into fields. Plain, deterministic code checks those fields. The GP's Android app shows the alert. Email, SMS and a voice call tell the GP to open the app, with no patient details. The GP reviews the result next to the original report and taps "Seen". A web dashboard shows every check, message and action.
 
-**The production direction.** BloodLine would read results from the practice software, starting with Best Practice through Halo Connect. Labs change nothing: "we plug in where results already land". In production, results arrive as structured data (HL7) alongside PDFs. So AI reading becomes a fallback, not the main path.
+**The production direction.** BloodLine would read results from the practice software, starting with Best Practice through Halo Connect. Labs change nothing: "we plug in where results already land". In production, results arrive as structured data (HL7) alongside PDFs. So OCR becomes a fallback, not the main path. Before the final product, OCR moves to a secure service (§13.7).
 
 ---
 
@@ -83,6 +83,11 @@ BloodLine adds one more safety net. It does not change who is responsible. The G
 - Most pathology results now appear without the old 7-day delay [S4] [S5] [S6].
 - The Australian Digital Health Agency (ADHA) reported consumer views of pathology and imaging reports jumped 433% in the first week [S4] [S5] [S6].
 - **A2.** Patients may now see results before anyone at the practice has acted on them. This raises the stakes of a missed follow-up.
+- The RACGP's 6th edition Standards, released on 26 August 2026, keep a dedicated criterion for follow-up systems (CG6) [S42] [S43].
+- Labs have started texting doctors. Australian Clinical Labs texts high-risk results and asks the doctor to confirm, citing the Medical Board's expectation that doctors be available to receive clinically significant results [S48].
+- Full-time equivalent GPs per 100,000 people fell from 117 in 2019 to 113 in 2024 [S38]. Each GP covers more patients.
+- One integration now reaches most practices. Halo Connect is the only connection method for Bp Omni, and Bp Premier integrations are moving to it [S11] [S12]. Best Practice is used by 75.9% of PIP QI practices [S9].
+- Structured pathology data standards are maturing. AU Core FHIR defines a profile for pathology results [S60].
 
 ### 3.4 What we still need to learn
 
@@ -98,7 +103,7 @@ BloodLine adds one more safety net. It does not change who is responsible. The G
 
 | # | Goal |
 |---|---|
-| D1 | Show the full loop on synthetic data: result arrives → AI reads it → checks run → alert fires → SMS/voice call → GP reviews → "Seen". |
+| D1 | Show the full loop on synthetic data: result arrives → OCR reads it → checks run → alert fires → SMS/voice call → GP reviews → "Seen". |
 | D2 | Show all three triggers, the "couldn't check" path, and duplicate handling. |
 | D3 | Show the safety design: side-by-side view, prominent lab comments, no patient details in messages, full audit trail. |
 | D4 | Run reliably on stage, even when a provider's keys are missing (simulated mode) or the venue Wi-Fi is weak. |
@@ -120,7 +125,7 @@ BloodLine adds one more safety net. It does not change who is responsible. The G
 - Diagnosis, interpretation or treatment advice.
 - Deciding urgency, or ranking alerts.
 - Automated follow-up, escalation chains or a follow-up tracking lifecycle.
-- AI interpretation. The AI only transcribes.
+- Automated interpretation of the report. OCR only transcribes.
 - Replacing the GP's inbox review, or the lab's phone call for critical results.
 - Our own reference-range table for checks.
 - Charging patients, charging per alert, or selling patient data.
@@ -241,7 +246,7 @@ BloodLine adds one more safety net. It does not change who is responsible. The G
 **US-16 Reset the demo.** As the presenter, I want to reset between runs, so every run starts clean.
 - "Reset demo" asks for confirmation.
 - Reset recreates the database from the synthetic seed.
-- Reset keeps the AI extraction cache, so repeat runs stay free and instant (see Q15).
+- Reset keeps the OCR cache, so repeat runs stay free and instant (see Q15).
 - Reset writes a "demo reset" audit event.
 
 ---
@@ -257,28 +262,28 @@ BloodLine adds one more safety net. It does not change who is responsible. The G
 | FR-3 | The PDF is saved to a local folder on the laptop (for example `web/data/reports/`). The API computes a hash of the file. |
 | FR-4 | Only synthetic or fully de-identified PDFs may enter the demo. The upload page says so. |
 
-### 7.2 AI reading
+### 7.2 OCR reading
 
 | ID | Requirement |
 |---|---|
-| FR-5 | The AI transcribes the PDF into fields for each result: test name, value, unit, printed reference range, lab flag, lab comments. |
-| FR-6 | The AI only transcribes. It never decides whether to alert, how serious a result is, or what it means. |
-| FR-7 | Extraction results are cached by file hash in SQLite. The same file is never sent to the AI twice. |
-| FR-8 | Model: Claude Haiku 5.5 via OpenRouter, model id `anthropic/claude-haiku-5.5`, set by `OPENROUTER_MODEL`. |
-| FR-9 | Each AI call logs the model, token counts and an estimated cost (Proposed). This lets us measure the cost estimate. |
-| FR-10 | If the AI call fails, times out or returns unusable output, the result is treated as "couldn't check". It is never dropped silently. |
+| FR-5 | OCR transcribes the PDF into fields for each result: test name, value, unit, printed reference range, lab flag, lab comments. |
+| FR-6 | OCR only transcribes. It never decides whether to alert, how serious a result is, or what it means. |
+| FR-7 | OCR results are cached by file hash in SQLite. The same file is never sent for OCR twice. |
+| FR-8 | Demo: OCR runs through OpenRouter (`OPENROUTER_API_KEY`; the engine can be changed with `OPENROUTER_MODEL`). Before the final product, it moves to a secure OCR service (§13.7). |
+| FR-9 | Each OCR call logs the engine, usage and cost (Proposed). This lets us measure the cost estimate. |
+| FR-10 | If OCR fails, times out or returns unusable output, the result is treated as "couldn't check". It is never dropped silently. |
 
-**Cost (verified price, estimated usage).** OpenRouter lists `anthropic/claude-haiku-5.5` at $0.10 per million input tokens and $0.50 per million output tokens. This was checked on 2026-10-11 [S31]. The model accepts file input [S31]. We estimate well under 1 cent per 2-page report. *This is an estimate, to be measured.* For illustration only: 10,000 input tokens plus 1,000 output tokens would cost about $0.0015. The budget is $10 of OpenRouter credit.
+**Cost.** About $0.0003 per synthetic report through OpenRouter (prices checked 2026-10-11 [S31]). Cost is logged per call, so this is measured as we go. The budget is $10 of OpenRouter credit.
 
-**Why validation matters more here.** Haiku is the least capable model we considered. So the deterministic checks and the side-by-side view carry more of the safety load. We will test on a set of synthetic reports before the demo.
+**Why validation matters.** OCR can misread a digit, a decimal place or a row. So the deterministic checks and the side-by-side view carry the safety load. We will test on a set of synthetic reports before the demo.
 
-**Data rule.** Only synthetic or fully de-identified PDFs may go to the AI. OpenRouter routes requests to providers outside Australia.
+**Data rule.** Only synthetic or fully de-identified PDFs may go to OCR. OpenRouter routes requests to providers outside Australia.
 
 ### 7.3 Validation (deterministic code)
 
 | ID | Requirement |
 |---|---|
-| FR-11 | Every AI output is validated against a schema (Zod). |
+| FR-11 | Every OCR output is validated against a schema (Zod). |
 | FR-12 | The value must be a plain number. Anything else (for example "<0.1" or "see comment") → couldn't check. |
 | FR-13 | The printed reference range must parse into a lower and an upper number. Missing or unreadable → couldn't check. One-sided ranges: see Q5. |
 | FR-14 | The test name must match a known test type. Proposed: exact match or a short allow-list of aliases. Unknown test → couldn't check. |
@@ -413,12 +418,12 @@ Proposed list of audited events: report received; extraction (new or cached); va
 | NFR-12 | Reliability | Extractions are cached per file, so repeat runs are free and instant. | Requirement |
 | NFR-13 | Reliability | Ingest is safe to repeat. Duplicates are ignored and logged. | Requirement |
 | NFR-14 | Performance | An alert appears in the app within about 10 seconds of the simulator sending a result (cached extraction). | Target |
-| NFR-15 | Performance | First-time (uncached) AI reading time is measured before the demo. | Target |
-| NFR-16 | Cost | Total AI spend stays within $10. Cost per report is logged. | Target |
+| NFR-15 | Performance | First-time (uncached) OCR time is measured before the demo. | Target |
+| NFR-16 | Cost | Total OCR spend stays within $10. Cost per report is logged. | Target |
 | NFR-17 | Accessibility | Colour is never the only signal. Reasons and statuses always have text labels. | Requirement |
 | NFR-18 | Accessibility | Respect reduced-motion settings on web and mobile (§9). | Requirement |
 | NFR-19 | Accessibility | Proposed: web aims for WCAG 2.1 AA contrast. The app supports large system text. Buttons have screen-reader labels. | Target |
-| NFR-20 | Testing | Vitest covers the range check, GP rules and validation of AI-read fields. A synthetic report set tests the AI reading before the demo. | Requirement |
+| NFR-20 | Testing | Vitest covers the range check, GP rules and validation of OCR-read fields. A synthetic report set tests OCR before the demo. | Requirement |
 
 ---
 
@@ -477,8 +482,8 @@ These are the only places with showy animation.
 
 | # | Where | What the audience sees | What it shows |
 |---|---|---|---|
-| 1 | Dashboard: live pipeline | An animated beam from Lab report → AI reading → Checks → Alert → Email/SMS/Call. Each step lights up as it completes (driven by Server-Sent Events). | The pipeline is real and fast. |
-| 2 | Web: AI reading view | The report on the left with a scanning shimmer. Extracted values pop into a table one by one. Each gets a check mark when validation passes, or an amber shake when it fails ("couldn't check"). | The AI only reads. Code checks every field. |
+| 1 | Dashboard: live pipeline | An animated beam from Lab report → OCR → Checks → Alert → Email/SMS/Call. Each step lights up as it completes (driven by Server-Sent Events). | The pipeline is real and fast. |
+| 2 | Web: OCR reading view | The report on the left with a scanning shimmer. Extracted values pop into a table one by one. Each gets a check mark when validation passes, or an amber shake when it fails ("couldn't check"). | OCR only reads. Code checks every field. |
 | 3 | Phone: alert arrival | The card springs in, the phone buzzes (haptics), the badge count ticks up. | The GP is told quickly. |
 | 4 | Phone: mark as seen | Swipe (or tap). A check-mark animation plays and the card collapses smoothly. | Only the GP's action counts as "Seen". |
 | 5 | Dashboard: message delivery | Email/SMS/Call chips go from "sending" to "sent" (or "simulated"/"failed") while the phone rings on stage. | Delivery is tracked honestly. |
@@ -520,7 +525,7 @@ Respect reduced-motion settings: Motion's `useReducedMotion` on web, Reanimated'
 | Web | Next.js 16 (TypeScript, React 19, Tailwind v4): simulator and practice dashboard. |
 | Web UI | shadcn/ui, Motion, Magic UI (Animated Beam, Number Ticker), Sonner, lucide-react, TanStack Query, shadcn charts (Recharts) (§9.3). |
 | API | Next.js API routes (Node runtime), Zod input validation. Server-Sent Events for the dashboard. |
-| AI | OpenRouter → `anthropic/claude-haiku-5.5` (transcription only). |
+| OCR | OpenRouter (transcription only). Moves to a secure OCR service before the final product (§13.7). |
 | Database | Local SQLite file on the laptop, using Node's built-in `node:sqlite` module (Node 24, no extra packages). File: `web/data/bloodline.db`, git-ignored. "Reset demo" recreates it from the synthetic seed. The team verified `node:sqlite` works in Next.js 16.4 API routes on 2026-10-11. |
 | Report files | Local folder on the laptop: `web/data/reports/`, git-ignored. Served to the app through the API. |
 | Extraction cache | In SQLite, keyed by file hash. |
@@ -528,13 +533,13 @@ Respect reduced-motion settings: Motion's `useReducedMotion` on web, Reanimated'
 | SMS and voice | Twilio (upgraded account). |
 | Hosting | Laptop + free Cloudflare quick tunnel (`cloudflared`), giving the phone a public HTTPS address. The address changes each run, hence the app's server-address field. Vercel was rejected because its free Hobby plan forbids commercial use [S32]. |
 | Presenting | scrcpy mirrors the phone onto the laptop. Emulator as fallback. |
-| Tests | Vitest for the range check, GP rules and validation of AI-read fields. |
+| Tests | Vitest for the range check, GP rules and validation of OCR-read fields. |
 | Code | Git + private GitHub repo. |
 
 **Why local SQLite for the demo.** Everything in the demo is synthetic. The backend already runs on the laptop. It removes one account and one set of keys. It is one less thing to fail on venue Wi-Fi.
 
 **What leaves the laptop (keep this accurate).** All data is *stored* only on the laptop. Data *leaves* it in three ways:
-1. Each new synthetic report PDF goes to OpenRouter for reading.
+1. Each new synthetic report PDF goes to OpenRouter for OCR.
 2. The GP app fetches alerts and reports through the Cloudflare tunnel.
 3. The content-free nudge goes out through Resend (email) and Twilio (SMS, voice).
 
@@ -558,7 +563,7 @@ flowchart LR
     end
 
     tunnel["Cloudflare quick tunnel<br/>(public HTTPS address)"]
-    ai["OpenRouter<br/>Claude Haiku 5.5"]
+    ocr["OCR<br/>(OpenRouter)"]
     msg["Resend (email)<br/>Twilio (SMS + voice)"]
 
     app -- "HTTPS, polls every few seconds" --> tunnel
@@ -567,21 +572,21 @@ flowchart LR
     pages -- "requests + live updates (SSE)" --> api
     api --> db
     api --> files
-    api -- "synthetic PDFs only" --> ai
+    api -- "synthetic PDFs only" --> ocr
     api --> msg
     msg -- "no patient details" --> nudge
 ```
 
 ### 10.3 Pipeline (data flow)
 
-The founders' agreed order: receive report → store PDF → AI transcribe → validate → ignore duplicates → three checks → route to GP (or their colleague if away) → create alert → send messages → audit log.
+The founders' agreed order: receive report → store PDF → OCR → validate → ignore duplicates → three checks → route to GP (or their colleague if away) → create alert → send messages → audit log.
 
 ```mermaid
 flowchart TD
     A["Receive report<br/>(simulator or upload)"] --> B["Save PDF to local folder<br/>and hash it"]
     B --> C{"Read this file before?"}
     C -- yes --> D["Use cached extraction"]
-    C -- no --> E["AI transcribes fields<br/>(OpenRouter)"]
+    C -- no --> E["OCR transcribes fields<br/>(OpenRouter)"]
     E --> F["Save extraction to cache"]
     D --> G["Validate every field<br/>(deterministic code)"]
     F --> G
@@ -611,7 +616,7 @@ Founders' proposed tables. Items marked **(proposed addition)** are suggestions 
 | `clinicians` | id, name, email, mobile, channel preferences (in-app/email/SMS/voice), away flag, covering colleague id | Synthetic GPs. |
 | `patients` | id, display name, synthetic flag | Synthetic only. |
 | `test_types` | id, name, fixed unit, illustrative reference range; aliases **(proposed addition)** | The illustrative range is for making synthetic PDFs. It is **never** used for checks (see Q6). |
-| `reports` | id, file path in `web/data/reports/`, file hash, extraction cache (JSON), patient id; requesting GP id, model, token counts **(proposed additions)** | Cache is keyed by file hash. |
+| `reports` | id, file path in `web/data/reports/`, file hash, extraction cache (JSON), patient id; requesting GP id, OCR engine, usage **(proposed additions)** | Cache is keyed by file hash. |
 | `results` | id, report id, patient id, test type id, value, unit, printed range, lab flag, lab comments, unique source message id; raw value text, range check outcome, couldn't-check reason **(proposed additions)** | Check outcomes stored here form the check log (Q16). |
 | `rules` | id, GP id, patient id, test type id, above/below, value, unit, end date, active; version **(proposed addition)** | Rules are ended, not deleted. Changes versioned. |
 | `alerts` | id, result id, GP id, reasons (lab flag / range / rule), created, seen; original GP id, matched rule id, "couldn't check" reason **(proposed additions)** | Reasons stored as JSON text. |
@@ -635,7 +640,7 @@ All endpoints below are **proposed**.
 | GET | `/api/alerts/:id` | App | Alert detail: fields, reasons, lab comments, previous results, report link. |
 | POST | `/api/alerts/:id/seen` | App | Mark as seen. Audit-logged. |
 | GET | `/api/reports/:id/file` | App, dashboard | Stream the original PDF from the local report folder. |
-| GET | `/api/reports/:id/extraction` | AI reading view | Extracted fields and validation result per field. |
+| GET | `/api/reports/:id/extraction` | OCR reading view | Extracted fields and validation result per field. |
 | GET | `/api/patients` | App | List synthetic patients. |
 | GET | `/api/patients/:id/rules` | App | A patient's active and expired rules. |
 | GET | `/api/patients/:id/results?testTypeId=` | App | Previous results for a test, and the latest printed range. |
@@ -652,8 +657,8 @@ Secrets live only in `web/.env.local`:
 
 | Variable | Purpose |
 |---|---|
-| `OPENROUTER_API_KEY` | AI reading |
-| `OPENROUTER_MODEL` | `anthropic/claude-haiku-5.5` |
+| `OPENROUTER_API_KEY` | OCR |
+| `OPENROUTER_MODEL` | Optional OCR engine override |
 | `RESEND_API_KEY` | Email |
 | `EMAIL_FROM` | Email sender |
 | `TWILIO_ACCOUNT_SID` | SMS and voice |
@@ -668,7 +673,7 @@ The database needs no keys. It is a local file. The phone app holds no secrets, 
 |---|---|---|---|
 | Resend | Free | 3,000 emails/month, 100/day. Without your own domain, it only sends to the account owner's address [S34]. | Use the account owner's address as the demo GP's email (Q19). |
 | Twilio | Upgraded (paid top-up) | Trial accounts: preset SMS templates only, a "Sent from a Twilio Trial account" prefix, a "press any key" voice preamble, 5 verified numbers, sign-up country only [S33]. A sender number that can text and call Australian mobiles may need ID checks that take time. | Upgrade. Start the number and ID process early. |
-| OpenRouter | Founders' $10 credit | $0.10/M input, $0.50/M output tokens [S31]. | Cache extractions. Log cost per call. |
+| OpenRouter (OCR) | Founders' $10 credit | About $0.0003 per report [S31]. | Cache OCR results. Log cost per call. |
 | Expo Go, GitHub, cloudflared | Free | The quick-tunnel address changes each run. | Use the app's server-address field. |
 | scrcpy | Free, open source | — | Install and test before the event. |
 | Vercel | Rejected | Free Hobby plan forbids commercial use [S32]. | Laptop + tunnel instead. |
@@ -752,6 +757,8 @@ The demo uses synthetic data only. Most obligations below apply from the first p
 
 **The practice software remains the official clinical record.** BloodLine is not a record system.
 
+**Why we can't store nothing.** GP rules must persist between results. "Seen" must be recorded. Practices need proof that an alert was sent and seen, for accreditation and incident review (§5). Duplicate detection needs the message IDs it has already seen.
+
 | Store | Don't store |
 |---|---|
 | Patient reference ID from the practice software. | Patient names and dates of birth. Look them up live from the practice software when the GP opens an alert. |
@@ -759,6 +766,37 @@ The demo uses synthetic data only. Most obligations below apply from the first p
 | Message log with masked numbers (for example "+61 4•• ••• 123"). | Report PDFs after reading. Delete straight away, or after a short agreed period. |
 | GP contact details and channel preferences. | Anything past a retention period agreed with each practice. |
 | Message IDs for duplicate detection. | |
+| Proposed: the value, unit, printed range and lab flag behind each check, for the agreed retention period. Without them we can't later show why an alert fired, or why one didn't (Q32). | |
+
+**The demo stores far more.** It keeps patient names, dates of birth, every result and every report PDF, with no expiry. That is acceptable only because the data is synthetic. The production schema starts from the table above, not from the demo's.
+
+**How the app shows patient details without storing them (Proposed).** BloodLine fetches them live from the practice software each time the GP opens an alert, passes them to the app, and keeps nothing.
+
+1. A result lands in the practice software. BloodLine reads it through Halo Connect, runs the three checks, and saves only the alert: the patient reference ID, the reasons and the "Seen" status.
+2. The nudge goes out with no patient details, so it needs none.
+3. The GP opens the alert. The app asks BloodLine's server, which uses the reference ID to fetch the name, date of birth, result, history and report PDF from the practice software. The server passes them to the app without saving them. The app shows them without saving them to the phone.
+4. Every lookup is logged: who viewed which patient, and when.
+
+```mermaid
+sequenceDiagram
+    participant PS as Practice software (via Halo Connect)
+    participant BL as BloodLine server
+    participant App as GP app
+    PS->>BL: New result (patient reference ID, values)
+    BL->>BL: Three checks. Save the alert only.
+    BL-->>App: Content-free nudge
+    App->>BL: GP opens the alert
+    BL->>PS: Fetch name, DOB, result, history, PDF
+    PS-->>BL: Patient details
+    BL-->>App: Shown on screen, not saved
+    BL->>BL: Log who viewed which patient
+```
+
+What this depends on, and what it costs:
+- Halo must let partners read patient details and pathology results (Q24, §13.5).
+- If the practice's system or its Halo connection is offline, the app can show only the alert and the reference ID. The GP then checks in the practice software (Q33).
+- Opening an alert is slower, because of the round trip to the practice. The alert list shows patient names, so it needs lookups too.
+- Patient details still pass through BloodLine's server in memory, so privacy obligations still apply.
 
 ---
 
@@ -770,11 +808,11 @@ The demo uses synthetic data only. Most obligations below apply from the first p
 
 | # | Hazard | How it could happen | Mitigations in this design | Remaining gap |
 |---|---|---|---|---|
-| H1 | **Missed alert** (silence read as "all clear") | AI misses a row; parsing fails; pipeline error; rule expired. | Safety net only: usual inbox review continues. "Couldn't check" instead of silence. AI failure → "couldn't check". No "all clear" wording. Every check logged. | Field validation can't catch a whole missing row. FR-17 cross-check may help. Measure in shadow mode. |
+| H1 | **Missed alert** (silence read as "all clear") | OCR misses a row; parsing fails; pipeline error; rule expired. | Safety net only: usual inbox review continues. "Couldn't check" instead of silence. OCR failure → "couldn't check". No "all clear" wording. Every check logged. | Field validation can't catch a whole missing row. FR-17 cross-check may help. Measure in shadow mode. |
 | H2 | **False alarms / alert fatigue** | Borderline values; many rules; voice call for every alert. | Exactly three triggers. One alert per result with all reasons (proposed). GP chooses channels. Rules expire. | Real alert rate unknown. Measure in pilot. |
-| H3 | **AI misreads a value** | Wrong digit, decimal place, swapped rows, dropped lab comment. | AI transcribes only. Deterministic validation. Side-by-side with the original report. Synthetic test set before the demo. | A plausible wrong number can pass validation. In production, structured HL7 data is the main path. |
+| H3 | **OCR misreads a value** | Wrong digit, decimal place, swapped rows, dropped lab comment. | OCR transcribes only. Deterministic validation. Side-by-side with the original report. Synthetic test set before the demo. | A plausible wrong number can pass validation. In production, structured HL7 data is the main path. |
 | H4 | **Wrong unit** | Lab uses a different unit from the rule or test type. | Unit fixed per test. Any unexpected unit → "couldn't check". No unit conversion. | — |
-| H5 | **Wrong patient** | Report linked to the wrong patient. | Proposed: patient comes from message metadata, not the AI. GP sees the original report. Synthetic data only in the demo. | Identity matching must be designed with the practice-software integration. |
+| H5 | **Wrong patient** | Report linked to the wrong patient. | Proposed: patient comes from message metadata, not OCR. GP sees the original report. Synthetic data only in the demo. | Identity matching must be designed with the practice-software integration. |
 | H6 | **Alert to wrong or absent GP** | GP on leave without handover; wrong routing. | Manual "Away" handover. Alert records original GP and recipient. Dashboard shows unseen alerts. | No automatic escalation by design. The practice's usual process remains the backstop. |
 | H7 | **Delayed or failed message** | Provider outage, wrong number, no signal. | Status logged (sent/simulated/failed). Several channels. Only "Seen" counts. | No retries in the demo. Production adds a job queue with retries and delivery tracking. |
 | H8 | **Duplicate alerts** | Same message sent twice. | Duplicate source message id ignored and logged. Extraction cached. | Amended reports need rules (Q10). |
@@ -828,9 +866,9 @@ AIHW's 2025–26 PIP QI data covers 6,244 practices. Of these, 75.9% use Best Pr
 | 5 | Is there a test environment? |
 | 6 | Is read-only access enough for our use? |
 
-### 13.6 Where AI reading fits in production
+### 13.6 Where OCR fits in production
 
-In production, results arrive as structured data (HL7) alongside PDFs. So AI reading becomes a fallback, not the main path. This depends on question 1 above. If partners can read structured values, we use them first.
+In production, results arrive as structured data (HL7) alongside PDFs. So OCR becomes a fallback, not the main path. This depends on question 1 above. If partners can read structured values, we use them first.
 
 ### 13.7 Production stack changes
 
@@ -844,7 +882,7 @@ In production, results arrive as structured data (HL7) alongside PDFs. So AI rea
 | Processing | Inside the request | Background job queue with retries |
 | Email | Resend, no own domain | Own email domain, delivery tracking |
 | SMS and voice | Twilio | Australian sender number, delivery tracking |
-| AI | OpenRouter (providers outside Australia), synthetic only | Fallback only. Australian-hosted AI option if AI reading is kept (to be confirmed) |
+| OCR | OpenRouter (providers outside Australia), synthetic only | Secure OCR service, Australian-hosted, before the final product. Fallback only, behind structured data (service to be chosen) |
 | Hosting | Laptop + quick tunnel | Australian hosting |
 | Monitoring | Demo dashboard | Monitoring and alerting |
 
@@ -862,34 +900,92 @@ In production, results arrive as structured data (HL7) alongside PDFs. So AI rea
 |---|---|---|
 | HotDoc | Reportedly about $81 per doctor per month, ex GST (third-party summary) | [S20] |
 | Cubiko | From $159 per month per practice | [S19] |
+| Heidi (AI scribe) | About US$110–150 per clinician per month on its main paid plan (third-party price trackers, 2026) | [S58] |
 
 ### 14.2 Value story
 
 - **Lead with safety, not billing.**
-- **H2.** Two follow-up consultations per GP per month at MBS item 23 would cover the price. Item 23 is $45.05 from 1 July 2026, per a secondary source [S22]. *Confirm on MBS Online.*
-- RACGP accreditation standards require a results follow-up system. Criterion GP2.2 (5th edition) requires practices to review, mark as reviewed and act on results; recall patients with clinically significant results; and manage high-risk results received after hours [S36].
+- **H2 (revised).** For a practice, the first-year case is safety and accreditation, not billing. Most follow-up consultations would happen anyway through the normal inbox. BloodLine only adds the ones for results that would otherwise have been missed, and we don't yet know how many that is.
+  - Billing break-even: at $60 per GP per month, a practice covers the fee if BloodLine leads to about 1.3 extra item-23 consultations per GP per month (about 2.2 at $100). Item 23 is $45.05 from 1 July 2026, per a secondary source [S22]. *Confirm on MBS Online.* The shadow pilot measures extra consultations before we claim them.
+  - What a practice gets from Year 1: evidence for the accreditation follow-up criterion, which PIP QI payments depend on; fewer missed results, and the complaints and claims that follow them [S59]; and less staff time spent chasing results (to measure in the pilot).
+- RACGP accreditation standards require a results follow-up system. Criterion GP2.2 (5th edition) requires practices to review, mark as reviewed and act on results; recall patients with clinically significant results; and manage high-risk results received after hours [S36]. The 6th edition, released on 26 August 2026, keeps this as CG6 Follow-up systems [S42] [S43]. Accreditation still uses the 5th edition until a transition plan is announced [S42].
 - Accreditation is a condition of the PIP QI payment: $5 per SWPE per year, capped at $12,500 per quarter [S23] [S24].
 
 ### 14.3 Market
 
 | Fact | Source |
 |---|---|
-| Nearly 40,000 GPs (RACGP 2024 figures) | [S8] |
+| 40,375 GPs in 2024 (headcount), or 29,976 full-time equivalent | [S37] |
 | GPs delivered 172 million services to 22.6 million patients in a year | [S7] |
-| Total number of Australian practices | **Not verified.** AIHW's PIP QI data covers 6,244 practices [S9], but that is PIP QI data, not a full count. |
+| About 8,100 practices (estimate). In 2019, 6,825 accredited practices made up 83.8% of all practices. No official current count found. AIHW's PIP QI data covers 6,244 practices. | [S39] [S9] |
+| Best Practice is used by 75.9% of PIP QI practices, MedicalDirector by 21.3% | [S9] |
+| NSW, the beachhead, has 117 full-time equivalent GPs per 100,000 people (national: 113). About 3 in 10 Australians live in NSW (estimate). | [S38] |
+| Expansion: England has 39,918 fully qualified GPs (December 2025). New Zealand's GP college has 6,018 members, including registrars and rural hospital doctors. | [S40] [S41] |
 
-### 14.4 Illustrative revenue (not a forecast)
+### 14.4 Revenue scenarios (not a forecast)
 
-| Scenario | Calculation | Per year |
+An interactive version, with adjustable price, practice size and reach, is on the pitch page: [docs/pitch.html](pitch.html).
+
+**Assumptions.**
+- $60 per GP per month (H1). Practices average 5 GPs (40,375 GPs ÷ about 8,100 practices).
+- Practices live at the end of each year follow one ramp: 1%, 5%, 20%, 50% and 100% of the Year-5 count. Counts are net of churn.
+- Year 1 starts with the first paying practice, after the validation plan (§14.7).
+- Revenue in a year averages the practices live at its start and end.
+- Not included: costs (Halo Connect's per-practice fee is not published), GST, price rises and expansion markets.
+
+| Scenario | Practices by Year 5 | Share of practices | ARR, end of Year 1 | ARR, end of Year 3 | ARR, end of Year 5 | Revenue in Year 5 |
+|---|---|---|---|---|---|---|
+| Conservative | 400 | ≈ 5% | $14k | $288k | $1.44M | $1.08M |
+| Base | 1,000 | ≈ 12% | $36k | $720k | $3.6M | $2.7M |
+| Ambitious | 2,400 | ≈ 30% | $86k | $1.73M | $8.64M | $6.48M |
+
+| Ceiling | Calculation | Per year |
 |---|---|---|
-| One practice | 5 GPs × $60 = $300/month | $3,600 |
-| 100 practices | 100 × $3,600 | ≈ $360k |
-| 1,000 practices | 1,000 × $3,600 | ≈ $3.6M |
-| Ceiling: every Australian GP | ~40,000 × $60 × 12 | ≈ $29M |
+| Every Australian GP | 40,375 × $60 × 12 | ≈ $29.1M |
+| Best Practice practices only (assumes GPs spread evenly across software) | 75.9% of the above | ≈ $22.1M |
+| England, at the same price per GP | 39,918 × $60 × 12 | ≈ $28.7M |
 
-The ceiling is small for venture capital. So the expansion story matters.
+The Australian ceiling is small for venture capital. So the expansion story matters.
 
 - **H3. Expansion:** imaging reports, referrals, hospitals with results pending at discharge, radiology groups, New Zealand and the UK.
+- **H4. Pricing headroom.** HotDoc (about $81 per doctor) and Heidi (about US$110–150 per clinician) charge more per clinician than $60 [S20] [S58]. At $100 per GP, the base case reaches $6M ARR by Year 5.
+
+**Costs (estimates, adjustable on the pitch page).**
+- People: a core team growing to 10 full-time equivalents by Year 5 (3, 5, 7, 8.5 and 10), plus one customer-team member (sales, onboarding, support) per 150 live practices. A$165k per person per year, including super and on-costs. Sydney full-stack developers earn about A$100–130k base [S63].
+- Overheads and marketing: 25% of people costs.
+- Running costs: A$70 per practice per month. That is a placeholder A$50 Halo Connect fee (not published; practices get Halo in their Bp Premier subscription [S12]), about A$8 of SMS and calls (Twilio charges US$0.0515 per SMS and US$0.075 a minute to Australian mobiles [S61] [S62]), and A$12 of hosting and OCR.
+- Compliance, legal and insurance: A$100–120k a year. It covers regulatory and legal advice, a privacy impact assessment, a yearly penetration test (A$15–40k for a SaaS platform [S64]), ISO 27001 certification from Year 2 (A$15–80k+ [S65]) and insurance.
+
+**Break-even (not a forecast).**
+
+| Scenario | Price per GP | Break-even year | Funding needed (peak cumulative loss) | Net in Year 5 |
+|---|---|---|---|---|
+| Conservative | $60 | After Year 5 | $7.0M+ | −$1.9M |
+| Base | $60 | After Year 5 | $6.4M+ | −$1.5M |
+| Ambitious | $60 | After Year 5 | $4.9M+ | −$0.5M |
+| Conservative | $100 | After Year 5 | $5.8M+ | −$1.2M |
+| Base | $100 | Year 5 | $3.7M | +$0.3M |
+| Ambitious | $100 | Year 4 | $2.3M | +$3.8M |
+| **Lean plan** (ambitious reach, smaller team, self-serve setup) | $60 | Year 5 (Year 4 within $81k) | $1.8M | +$1.1M |
+
+"+" means the company is still losing money in Year 5, so it needs more than this.
+
+**The lean plan (Proposed).** This is the path to pitch, at the $60 price (H1). It comes within $81k of break-even in Year 4, makes about $1.1M in Year 5, and needs about $1.8M of funding. It changes three things from the base case:
+- 2,400 practices by Year 5 (≈ 30% of Australian practices) instead of 1,000. This is the ambitious reach. It depends on PHN and medical-group deals that sign many practices at once (§14.5).
+- A core team of about 2, 3, 4, 5 and 6 people by year, instead of growing to 10.
+- One support person per 200 practices instead of 150, assuming practices set BloodLine up themselves. Halo Connect monitors the connection and supports practices, so we don't run a help desk for it [S66].
+
+With 2,600 practices instead, Year 4 breaks even exactly (+$9k). At $100 per GP, the same team breaks even in Year 4 with only 1,000 practices (H4).
+
+| Lean plan | Year 1 | Year 2 | Year 3 | Year 4 | Year 5 |
+|---|---|---|---|---|---|
+| Practices (end of year) | 24 | 120 | 480 | 1,200 | 2,400 |
+| Revenue | $43k | $259k | $1.08M | $3.02M | $6.48M |
+| Costs | $511k | $913k | $1.71M | $3.1M | $5.34M |
+| Net | −$468k | −$654k | −$633k | −$81k | +$1.14M |
+| Cumulative | −$468k | −$1.12M | −$1.75M | −$1.84M | −$700k |
+
+**What this means.** Year 1 loses money in every scenario: about $0.7M with the standard team and about $0.5M on the lean plan, because revenue is under $75k. At $60 per GP with the standard team, BloodLine needs about 1,580 practices (≈ 19% of Australian practices) to break even, which no scenario reaches by Year 5. With the lean team it needs about 785 (≈ 10%), but growing that fast means hiring support ahead of revenue, so the lean plan needs 2,400 practices by Year 5 to come close in Year 4. Growth speed is the biggest risk in the plan.
 
 ### 14.5 Channels (hypotheses)
 
@@ -916,6 +1012,51 @@ The ceiling is small for venture capital. So the expansion story matters.
 - No practice-software integration route is available.
 - The TGA path is too costly.
 
+### 14.9 Competitors
+
+Checked on 11 October 2026 from public material. "Not found" means we found no evidence of a feature, not that it can't exist.
+
+**What practices use today**
+
+| Option | What it does | Where it falls short for this job | Source |
+|---|---|---|---|
+| Practice software inbox (Best Practice, MedicalDirector) | Results land in the GP's inbox. The GP marks an action. A follow-up inbox lists results that need a recall, and Bp Comms can text patients. Included in software the practice already pays for. | The GP has to open the inbox to see anything. We found no push to the GP's phone, no per-patient thresholds and no handover when the GP is away. | [S44] [S45] [S46] |
+| Lab alerts (Australian Clinical Labs eResults) | Alerts for urgent results by push notification, SMS and email. High-risk results are texted, and the doctor replies to confirm. | One lab's results, judged by that lab's high-risk criteria. We found no equivalent GP alerts from Sonic or Healius, which deliver results into practice software. | [S47] [S48] |
+| Practice processes | Registers, staff checks and reminders on the patient file, as the RACGP standards require. | Depends on people remembering. Informal processes have led to missed results and Ahpra complaints. | [S36] [S59] |
+
+**Adjacent products that could move into this space**
+
+| Product | What it does | Overlap with BloodLine | Source |
+|---|---|---|---|
+| HotDoc | Bookings, reminders and SMS recalls to patients, including for results. About $81 per doctor per month (third party). | Acts after the GP decides a patient needs recalling. Patient-facing, not GP alerting. Strong distribution. | [S49] [S20] |
+| Cubiko | Practice reporting with over 1,000 metrics, including recall lists. From $159 per practice per month. PHN-funded in some regions. | Practice-manager reporting, not real-time result alerts. | [S50] [S19] [S21] |
+| Pen CS Topbar | Prompts during the consult about gaps in care. Works with Best Practice, MedicalDirector and Zedmed. | Prompts when the patient's file is opened, not when a result arrives. | [S51] |
+| MediRecords Evolve Direct | AI sorting and filing of incoming documents in the MediRecords cloud system (announced for early 2026). | Files results. We found no checking or alerting. Only for MediRecords practices. | [S52] |
+| Yes AI | Says it reads pathology PDFs that arrive by email and flags abnormal values (vendor claim). | The closest feature overlap we found. Email-based. Claims not independently checked. | [S53] |
+
+**Overseas comparables (for investors)**
+
+| Company | What it shows | Source |
+|---|---|---|
+| Accurx (UK) | A GP-wide messaging tool reached about 98% of English practices by 2021 (company figure). Raised £8.8M in 2019 and £27.5M in 2021. | [S54] [S55] |
+| Rad AI Continuity (US) | Investors fund "closing the loop" on follow-up. Rad AI says follow-up rose from 30% to 75% or more. It raised $60M in 2025 at a $525M valuation. | [S56] |
+| Heidi Health (Australia) | Australian clinician software can scale globally: US$340M raised at a US$900M valuation, with US$50M ARR (September 2026). | [S57] |
+
+**Why no one has built this yet.** We found adjacent products, not a direct competitor. The likely reasons:
+- **Access is gated.** Results sit inside practice software. Best Practice grants partner access only after a stringent review [S10], Halo Connect supports only approved partners [S13], and MedicalDirector has no public developer portal [S16].
+- **Each player sees part of the problem.** A lab sees only its own results [S47] [S48]. Patient-messaging tools act after the GP has decided [S49]. The practice software shows every result, but only when the GP opens the inbox [S44].
+- **Regulation and liability put builders off.** Software that flags results may be a medical device, and the CDSS exemption needs specialist advice [S27] (§11.2). A product that promises alerts also takes on the risk of missing one. *(Our view.)*
+- **The market looked small to large vendors.** About $29M a year at $60 per GP (§14.4) is too small for large software companies to prioritise, which leaves room for a focused product. *(Our view.)*
+- **The single integration route is new.** Halo Connect is now the only connection method for Bp Omni, and Bp Premier integrations are moving to it [S11] [S12]. Integrators no longer have to build and support their own agent in every practice [S66].
+
+**Our position.** We found no Australian product that does all of these together: checks every result from every lab as it arrives, against the printed range and the GP's own rules; pushes to the GP's phone; hands over to a covering colleague; and says when a result couldn't be checked.
+
+**Competitive risks.**
+- Best Practice could add alerts to its own inbox. It also controls our integration route through Halo Connect, so we should be a partner, not a rival (§13).
+- Lab-led alerts like Australian Clinical Labs' could spread to Sonic and Healius.
+- HotDoc and Cubiko already sell to most of our buyers and could add a similar feature.
+- AI inbox tools (MediRecords, Yes AI) are moving from filing results to flagging them.
+
 ---
 
 ## 15. Demo plan
@@ -926,10 +1067,10 @@ The ceiling is small for venture capital. So the expansion story matters.
 |---|---|
 | Upgrade Twilio. Get a sender number that can text and call Australian mobiles. | ID checks may take time. Start early. |
 | Set up Resend. Use the account owner's email as the demo GP's email. | Without its own domain, Resend only sends to the owner [S34]. |
-| Load $10 OpenRouter credit. Create the API key. | AI reading. |
+| Load $10 OpenRouter credit. Create the API key. | OCR. |
 | Install Node 24, cloudflared and scrcpy on the laptop. | Runtime, tunnel, phone mirroring. |
 | Install Expo Go on the Android phone. Prepare the emulator. | App and fallback. |
-| Prepare the synthetic report set and the de-identified case study. | AI testing and the story. |
+| Prepare the synthetic report set and the de-identified case study. | OCR testing and the story. |
 | Create the private GitHub repo. | Code. |
 
 ### 15.2 Build order
@@ -937,7 +1078,7 @@ The ceiling is small for venture capital. So the expansion story matters.
 1. SQLite tables and synthetic seed data.
 2. Checking logic with tests.
 3. Simulator and report PDF generation.
-4. AI reading and validation.
+4. OCR reading and validation.
 5. GP Android app.
 6. Email, SMS and voice alerts.
 7. Practice dashboard.
@@ -954,7 +1095,7 @@ Two tracks: **Core** (pipeline and features) and **UI** (one teammate, if availa
 | 1–2 | **Step 1:** SQLite tables + synthetic seed. | Shared components: cards, chips, banner, status pills. | Seed loads. Reset works. |
 | 2–3 | **Step 2:** checking logic + Vitest. | Dashboard layout. | Tests pass for range, rules, validation. |
 | 3–4 | **Step 3:** simulator + pdf-lib reports. | Simulator page. | Buttons create PDFs. |
-| 4–5 | **Step 4:** AI reading + validation. Run the synthetic report set. | AI reading view (hero 2). | Fields extracted, validated, cached. |
+| 4–5 | **Step 4:** OCR reading + validation. Run the synthetic report set. | OCR reading view (hero 2). | Fields extracted, validated, cached. |
 | 5–6.5 | **Step 5:** GP app screens and polling. | Alert arrival and swipe-to-Seen (heroes 3, 4). | Alert shows on phone. "Seen" works. |
 | 6.5–7.5 | **Step 6:** email, SMS, voice + simulated mode. | Delivery chips (hero 5). | Messages sent or simulated, logged. |
 | 7.5–8.5 | **Step 7:** dashboard logs + SSE. | Live pipeline beam (hero 1), number tickers. | Dashboard updates live. |
@@ -974,7 +1115,7 @@ Timing is TBD.
 2. **Setting.** Phone (mirrored) and dashboard side by side. "Synthetic data" banner visible.
 3. **Normal result.** "Send normal result". No alert. The dashboard shows the check was logged.
 4. **Result arrives.** "Send result the lab flagged". The live pipeline lights up.
-5. **AI reads it.** The AI reading view: values pop in, each checked by code.
+5. **OCR reads it.** The OCR reading view: values pop in, each checked by code.
 6. **Alert fires.** The card springs onto the phone. Haptic buzz.
 7. **SMS and call.** The phone rings on stage. The message has no patient details.
 8. **GP rule.** Create a rule live, with the confirmation summary. "Send result matching a GP rule". It alerts even though the lab says normal.
@@ -987,7 +1128,7 @@ Timing is TBD.
 
 | If this fails | Do this |
 |---|---|
-| OpenRouter slow or down | Use cached extractions (pre-run every demo PDF). |
+| OpenRouter (OCR) slow or down | Use cached OCR results (pre-run every demo PDF). |
 | Twilio or Resend fails, or keys missing | Messages show as "simulated". Narrate it. |
 | Venue Wi-Fi blocks the tunnel | Phone hotspot. Or run the app in the emulator on the laptop. |
 | Phone or scrcpy fails | Use the Android emulator on the laptop screen. |
@@ -1007,7 +1148,7 @@ Timing is TBD.
 | Patient details in any message | Zero |
 | Triggers shown | All three, plus "couldn't check" and duplicate |
 | Synthetic test set: fields extracted correctly or flagged "couldn't check" | Every field (no silent errors) |
-| AI spend | Within $10 |
+| OCR spend | Within $10 |
 | Hero moments working | All five, or the agreed cut list |
 
 ### 16.2 Pilot (targets TBD)
@@ -1052,7 +1193,7 @@ Timing is TBD.
 
 ### 17.2 Dependencies
 
-- OpenRouter availability and `anthropic/claude-haiku-5.5`.
+- OpenRouter availability for OCR.
 - Twilio account upgrade and an Australian-capable sender number.
 - Resend account (sends only to the owner without a domain).
 - Node 24 (`node:sqlite`) and Next.js 16.
@@ -1069,7 +1210,7 @@ Timing is TBD.
 | A3 | Our persona needs are correct. |
 | A4 | Practice-software partners can read structured pathology results (to confirm with Bp/Halo). |
 | A5 | All chosen mobile libraries run in Expo Go on SDK 57. |
-| A6 | The AI reads our synthetic PDFs accurately enough for validation to catch the rest. |
+| A6 | OCR reads our synthetic PDFs accurately enough for validation to catch the rest. |
 
 ### 17.4 Open questions
 
@@ -1099,7 +1240,7 @@ Timing is TBD.
 | Q15 | "Reset demo" recreates the database, but the extraction cache lives in it. Proposed: keep the cache table (or a separate cache file) across resets. |
 | Q16 | There is no table for the check log. Proposed: store check outcomes on `results`. |
 | Q17 | The demo API has no authentication, and the tunnel address is public. Is that acceptable for synthetic data? Should simulator and reset be laptop-only? |
-| Q18 | How does OpenRouter pass the PDF to the model (native file input or a parsing step), and does that add cost? |
+| Q18 | How does OpenRouter receive the PDF (native file input or a parsing step), and does that add cost? |
 | Q19 | The demo GP's email must be the Resend account owner's address. Which address? |
 | Q20 | How long will Twilio's Australian number and ID checks take? |
 | Q21 | Does pdf-lib produce byte-identical files on repeat runs (needed for the cache)? |
@@ -1111,13 +1252,15 @@ Timing is TBD.
 | Q22 | TGA classification. Does our own range check affect the CDSS exemption? |
 | Q23 | Privacy: use or disclosure? Is patient consent needed? |
 | Q24 | Can Bp/Halo partners read structured pathology results? (See §13.5.) |
-| Q25 | Is there an Australian-hosted AI option if AI reading is kept? |
+| Q25 | Which secure, Australian-hosted OCR service do we move to before the final product? |
 | Q26 | Is $60 per GP per month the right price? |
 | Q27 | ~~Source for the RACGP accreditation requirement for a results follow-up system.~~ Resolved: RACGP Standards 5th edition, Criterion GP2.2 [S36]. |
 | Q28 | Confirm the MBS item 23 fee on MBS Online. |
 | Q29 | What is the total number of Australian general practices? |
 | Q30 | The pitch line "nothing leaves the laptop except the alert nudge" is not accurate. Reports go to OpenRouter, and the app reaches the laptop through Cloudflare's tunnel. Agree a reworded line (§10.1). |
 | Q31 | The tagline says BloodLine "makes sure someone acts on it". The product only notifies. It does not ensure action. Under TGA intended-purpose and advertising rules, wording matters. Should the tagline change? |
+| Q32 | To explain later why an alert fired, or why one didn't, do we keep the value, unit, printed range and lab flag behind each check? For alerts only, or for every result checked? For how long? (§11.7) |
+| Q33 | Patient details are fetched live from the practice software (§11.7). If the practice's system or its Halo connection is offline, what does the GP see? Is a short-lived, encrypted cache acceptable? |
 
 ### 17.5 Decisions made during the build (2026-10-11)
 
@@ -1135,7 +1278,7 @@ These resolve open questions above. They are demo defaults and can be revisited.
 | Q12 | A lab flag counts as "flagged" when it is present and is not "N" or "Normal". |
 | Q13 | One message per alert: "You have 1 result to review." |
 | Q14 | The unique source message id belongs to the report, not to each result. |
-| Q15 | The AI extraction cache has its own table (`extraction_cache`), which "Reset demo" does not clear. |
+| Q15 | The OCR cache has its own table (`extraction_cache`), which "Reset demo" does not clear. |
 | Q16 | A dedicated `checks` table logs every check (validation, lab flag, range, each rule), whether or not it alerts. |
 | Q17 | The simulator and "Reset demo" only accept requests from the laptop itself, not through the tunnel. |
 | Q21 | Generated PDFs use a fixed creation date, so the same synthetic report always has the same hash. |
@@ -1148,9 +1291,11 @@ These resolve open questions above. They are demo defaults and can be revisited.
 | Q13 (revised) | One nudge per GP per report, however many results alerted: "You have N new results to review." Avoids several calls for one report. |
 | FR-14, FR-15 (revised) | A test BloodLine doesn't recognise, or a unit that isn't the test's fixed unit, is still checked against the range printed on the same row (value and range share a unit on that row). Only GP rules are skipped, and any rule owner for that test is told "couldn't check". So realistic uploads don't produce a "couldn't check" for every unfamiliar row. |
 | — | 37 recognised blood tests (FBC, kidney, liver, lipids, glucose, thyroid, iron, vitamins, inflammation, bone, PSA). |
-| — | The AI also reads the patient's name. If it doesn't match the patient the report was filed against, BloodLine warns on the console and in the app. It never re-routes by name. |
+| — | OCR also reads the patient's name. If it doesn't match the patient the report was filed against, BloodLine warns on the console and in the app. It never re-routes by name. |
 | — | Uploads choose a patient and a requesting GP (defaults to the demo GP). Sample synthetic report PDFs can be downloaded from the console to demonstrate the upload flow. |
 | — | Real email/SMS/calls only go out when the presenter switches **Live messages** on (default off, with a confirmation) and the provider keys are set; otherwise they're logged as "simulated". |
+| Q25 (direction) | Before the final product, OCR moves from OpenRouter to a secure OCR service (to be chosen). |
+| Q29 (estimate) | About 8,100 practices: in 2019, 6,825 accredited practices made up 83.8% of all practices [S39]. No official current count found. |
 
 ---
 
@@ -1166,7 +1311,7 @@ These resolve open questions above. They are demo defaults and can be revisited.
 
 **For the product, by design**
 - Diagnosis, interpretation, urgency ranking or treatment advice.
-- AI interpretation of results.
+- Automated interpretation of results. OCR only transcribes.
 - Escalation chains and automatic handover.
 - Follow-up tracking lifecycle or automated follow-up.
 - BloodLine's own reference-range table for checks.
@@ -1215,6 +1360,11 @@ These resolve open questions above. They are demo defaults and can be revisited.
 - [S7] RACGP Health of the Nation 2025, executive summary — https://www.racgp.org.au/health-of-the-nation-2025/executive-summary
 - [S8] GP numbers summary (Health of the Nation 2024) — https://www.theweeklysource.com.au/dire-predictions-of-gp-shortfall-will-hit-aged-care-operators-health-of-the-nation-2024-report
 - [S9] AIHW, PIP QI measures 2025–26 — https://www.aihw.gov.au/reports/primary-health-care/pipqi-measures-2025-26
+- [S37] RACGP Health of the Nation 2025, current workforce — https://www.racgp.org.au/health-of-the-nation-2025/chapter-4-current-workforce-and-the-future/current-workforce-characteristics
+- [S38] RACGP Health of the Nation 2025, GP distribution — https://www.racgp.org.au/health-of-the-nation-2025/chapter-4-current-workforce-and-the-future/gp-distribution
+- [S39] RACGP, general practice accreditation data 2010–2021 — https://www.racgp.org.au/running-a-practice/practice-standards/standards-newsletter/reports/general-practice-accreditation-in-australia-data-f/results
+- [S40] NHS England Digital, General Practice Workforce, 31 December 2025 — https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services/31-december-2025
+- [S41] RNZCGP workforce survey 2024 snapshot — https://www.rnzcgp.org.nz/documents/603/2024_WFS_snapshot_FINAL.pdf
 
 **Integration**
 - [S10] Best Practice Partner Network — https://kb.bpsoftware.net/au/bppremier/jade/Content/Management/PartnerNetwork.htm
@@ -1243,6 +1393,33 @@ These resolve open questions above. They are demo defaults and can be revisited.
 - [S29] HWL Ebsworth, software regulation changes — https://hwlebsworth.com.au/modernising-medical-device-law-insights-on-software-regulation-changes/
 - [S30] NSW IPC, HRIP Act — https://www.ipc.nsw.gov.au/node/84
 - [S36] RACGP Standards for general practices (5th edition), Criterion GP2.2 Follow-up systems — https://www.racgp.org.au/running-a-practice/practice-standards/standards-5th-edition/standards-for-general-practices-5th-ed/general-practice-standards/gp-standard-2/criterion-gp2-2-follow-up-systems
+- [S42] EMPHN, RACGP releases the Standards 6th edition — https://emphn.org.au/news/racgp-releases-standards-for-general-practices-6th-edition/
+- [S43] RACGP Standards 6th edition, CG6 Follow-up systems — https://www.racgp.org.au/running-a-practice/practice-standards/standards-6th-edition/the-standards-for-general-practices-6th-edition/clinical-governance-standard/cg6-follow-up-systems
+
+**Competitors**
+- [S44] Bp Premier, viewing results in the provider inbox — https://kb.bpsoftware.net/au/bppremier/jade/Content/Clinical/PathologyandRadiology/Inbox_provider.htm
+- [S45] Bp Premier, recall appointments from the Follow up Inbox — https://kb.bpsoftware.net/bppremier/saffron/Clinical/Recalls/RecallAppointments.htm
+- [S46] MedicalDirector Helix, investigation results in the inbox — https://knowledge.helix.medicaldirector.com/topics/pathology_requests_in_the_inbox.html
+- [S47] Australian Clinical Labs, eResults — https://www.clinicallabs.com.au/doctor/eresults
+- [S48] Australian Clinical Labs, high-risk result notifications via SMS — https://www.clinicallabs.com.au/doctor/articles/high-risk-result-notifications-via-sms
+- [S49] Best Practice partner page, HotDoc — https://bpsoftware.net/partner-hotdoc
+- [S50] Cubiko, reporting for medical practices — https://cubiko.com.au/?p=199837
+- [S51] North Western Melbourne PHN, Topbar — https://nwmphn.org.au/?p=28033
+- [S52] MediRecords, Evolve Direct announcement — https://medirecords.com/medirecords-unveils-evolve-direct-ai-powered-inbox-management
+- [S53] Yes AI, email for medical practices (vendor) — https://yesai.au/ai-email-for-medical-practices/
+- [S54] TechCrunch, Accurx Series A (2019) — https://techcrunch.com/2019/02/24/accurx/
+- [S55] Digital Health, Accurx funding (2021) — https://digitalhealth.net/2021/09/accurx-secures-funding-expansion
+- [S56] AuntMinnie, Rad AI raises $60M — https://www.auntminnie.com/imaging-informatics/artificial-intelligence/article/15736249/rad-ai-rad-ai-raises-60m-in-funding-round
+- [S57] IT Brief, Heidi raises US$340M — https://itbrief.com.au/story/heidi-raises-us-340m-to-expand-ai-agents-in-healthcare
+- [S58] Heidi pricing summary (third party) — https://www.trytwofold.com/compare/heidi-health-pricing-2026-guide
+- [S59] Avant, GP's failure to recall patient leads to Ahpra complaint — https://avant.org.au/resources/gps-failure-to-recall-patient-leads-to-ahpra-complaint
+- [S60] HL7 Australia, AU Core pathology result profile — https://hl7.org.au/fhir/core/1.0.0/StructureDefinition-au-core-diagnosticresult-path.html
+- [S61] Twilio SMS pricing, Australia — https://www.twilio.com/en-us/sms/pricing/au
+- [S62] Twilio Voice pricing, Australia — https://www.twilio.com/en-us/voice/pricing/au
+- [S63] Payscale, full stack software engineer salary, Sydney — https://www.payscale.com/research/AU/Job=Full_Stack_Software_Engineer/Salary/ba93cf1a/Sydney
+- [S64] Penetration testing cost in Australia (vendor guide) — https://vibe-eval.com/ai-pentest/penetration-testing-cost-australia/
+- [S65] ISO 27001 certification in Australia (consultancy guide) — https://foit.com.au/iso-27001-certification/
+- [S66] Halo Connect integrator guide — https://docs.haloconnect.io/guides/integrator-guide/
 
 **Technical**
 - [S31] OpenRouter models API (prices and input types; checked 2026-10-11) — https://openrouter.ai/api/v1/models

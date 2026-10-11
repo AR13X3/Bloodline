@@ -41,7 +41,7 @@ export function ActivityCard({ feed }: { feed: DashboardFeed | undefined }) {
       </CardHeader>
       <CardContent className="min-h-0 flex-1">
         {items.length === 0 ? (
-          <div className="grid h-60 place-items-center rounded-xl border border-dashed text-sm text-muted-foreground">Nothing yet</div>
+          <div className="grid h-60 place-items-center rounded-2xl bg-secondary/60 text-sm text-muted-foreground">Nothing yet</div>
         ) : (
           <ScrollArea className="h-[560px] pr-3">
             <ul className="space-y-2">
@@ -51,7 +51,7 @@ export function ActivityCard({ feed }: { feed: DashboardFeed | undefined }) {
                   <motion.li
                     key={item.id}
                     {...rise()}
-                    className={cn("rounded-xl p-3 ring-1 ring-inset", item.kind === "alert" ? "bg-card ring-review/30" : "bg-muted/30 ring-border")}
+                    className={cn("rounded-2xl p-3.5", item.kind === "alert" ? "bg-review-soft/70" : "bg-secondary/60")}
                   >
                     {item.kind === "alert" ? <AlertRow item={item.alert} now={now} /> : <MessageRow item={item.message} now={now} />}
                   </motion.li>
@@ -68,8 +68,8 @@ export function ActivityCard({ feed }: { feed: DashboardFeed | undefined }) {
 function AlertRow({ item, now }: { item: DashboardFeed["alerts"][number]; now: number | null }) {
   return (
     <div className="flex gap-3">
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-review-soft text-review-foreground">
-        <BellRing className="size-4" />
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-card text-review-foreground">
+        <BellRing className="size-[18px]" strokeWidth={1.75} />
       </span>
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center justify-between gap-2">
@@ -87,7 +87,7 @@ function AlertRow({ item, now }: { item: DashboardFeed["alerts"][number]; now: n
             {item.handedOverFrom ? ` (cover for ${item.handedOverFrom.name})` : ""}
           </span>
           {item.seenAt ? (
-            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-[oklch(0.42_0.11_155)]">
+            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-success">
               <Eye className="size-3" /> Seen
             </span>
           ) : null}
@@ -100,13 +100,14 @@ function AlertRow({ item, now }: { item: DashboardFeed["alerts"][number]; now: n
 function MessageRow({ item, now }: { item: DashboardFeed["notifications"][number]; now: number | null }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-accent-foreground">
-        <ChannelGlyph channel={item.channel} className="size-4" />
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-card text-primary">
+        <ChannelGlyph channel={item.channel} className="size-[18px]" />
       </span>
       <div className="min-w-0 flex-1 leading-tight">
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium">{item.channel === "app" ? "In-app alert" : channelLabel(item.channel)}</span>
           <StatusPill status={item.status} />
+          {item.repeat ? <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-medium text-primary">Repeat {item.repeat}</span> : null}
         </div>
         <div className="truncate text-[11px] text-muted-foreground" title={item.detail ?? undefined}>
           {item.gpName} · {item.recipient ?? "—"}

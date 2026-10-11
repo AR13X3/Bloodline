@@ -14,12 +14,12 @@ function Empty({ text }: { text: string }) {
 
 export function LogsCard({ feed }: { feed: DashboardFeed | undefined }) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <SectionTitle icon={ScrollText} title="Records" />
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="alerts">
+      <CardContent className="flex min-h-0 flex-1 flex-col">
+        <Tabs defaultValue="alerts" className="min-h-0 flex-1">
           <TabsList>
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -27,10 +27,10 @@ export function LogsCard({ feed }: { feed: DashboardFeed | undefined }) {
             <TabsTrigger value="audit">Audit trail</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="mt-3 max-h-80 overflow-auto">
+          <TabsContent value="alerts" className="mt-3 min-h-80 basis-0 overflow-auto">
             {feed?.alerts.length ? (
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                <thead className="sticky top-0 bg-card text-left text-xs font-normal text-muted-foreground">
                   <tr><th className="py-2 pr-3">Time</th><th className="py-2 pr-3">Patient</th><th className="py-2 pr-3">Result</th><th className="py-2 pr-3">Why</th><th className="py-2 pr-3">To</th><th className="py-2">Seen</th></tr>
                 </thead>
                 <tbody>
@@ -49,10 +49,10 @@ export function LogsCard({ feed }: { feed: DashboardFeed | undefined }) {
             ) : <Empty text="No alerts yet" />}
           </TabsContent>
 
-          <TabsContent value="reports" className="mt-3 max-h-80 overflow-auto">
+          <TabsContent value="reports" className="mt-3 min-h-80 basis-0 overflow-auto">
             {feed?.reports.length ? (
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                <thead className="sticky top-0 bg-card text-left text-xs font-normal text-muted-foreground">
                   <tr><th className="py-2 pr-3">Received</th><th className="py-2 pr-3">Patient</th><th className="py-2 pr-3">Requesting GP</th><th className="py-2 pr-3">Source</th><th className="py-2 pr-3">Read by</th><th className="py-2 pr-3">Results</th><th className="py-2">Alerts</th></tr>
                 </thead>
                 <tbody>
@@ -72,10 +72,10 @@ export function LogsCard({ feed }: { feed: DashboardFeed | undefined }) {
             ) : <Empty text="No reports yet" />}
           </TabsContent>
 
-          <TabsContent value="messages" className="mt-3 max-h-80 overflow-auto">
+          <TabsContent value="messages" className="mt-3 min-h-80 basis-0 overflow-auto">
             {feed?.notifications.length ? (
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                <thead className="sticky top-0 bg-card text-left text-xs font-normal text-muted-foreground">
                   <tr><th className="py-2 pr-3">Time</th><th className="py-2 pr-3">Channel</th><th className="py-2 pr-3">GP</th><th className="py-2 pr-3">To</th><th className="py-2 pr-3">Status</th><th className="py-2">Detail</th></tr>
                 </thead>
                 <tbody>
@@ -94,10 +94,10 @@ export function LogsCard({ feed }: { feed: DashboardFeed | undefined }) {
             ) : <Empty text="No messages yet" />}
           </TabsContent>
 
-          <TabsContent value="audit" className="mt-3 max-h-80 overflow-auto">
+          <TabsContent value="audit" className="mt-3 min-h-80 basis-0 overflow-auto">
             {feed?.audit.length ? (
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                <thead className="sticky top-0 bg-card text-left text-xs font-normal text-muted-foreground">
                   <tr><th className="py-2 pr-3">Time</th><th className="py-2 pr-3">Who</th><th className="py-2 pr-3">What</th><th className="py-2">Detail</th></tr>
                 </thead>
                 <tbody>

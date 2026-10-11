@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useApi } from "./api";
-import { notifyNewResults } from "./notifications";
+import { notifyNewResults, notifyRepeat } from "./notifications";
 import { useSession } from "./session";
 import type { AlertListItem } from "./types";
 
@@ -19,30 +19,40 @@ export function useAlerts() {
 }
 
 /**
- * Fires a local notification and a haptic buzz when new unseen alerts appear.
+ * Fires a local notification and a haptic buzz when new unseen alerts appear,
+ * or when the server sends a repeat about alerts still unseen.
  * Returns the latest batch so the screen can show an in-app banner.
  */
 export function useNewAlertNotifier(alerts: AlertListItem[] | undefined) {
-  const known = useRef<Set<string> | null>(null);
-  const [fresh, setFresh] = useState<{ ids: string[]; at: number } | null>(null);
+  // Alert id → the last repeat we've already told the GP about.
+  const known = useRef<Map<string, string | null> | null>(null);
+  const [fresh, setFresh] = useState<FreshAlerts>(null);
 
   useEffect(() => {
     if (!alerts) return;
     if (known.current === null) {
-      known.current = new Set(alerts.map((a) => a.id));
+      known.current = new Map(alerts.map((a) => [a.id, a.lastRepeatAt]));
       return;
     }
-    const added = alerts.filter((a) => !known.current!.has(a.id) && !a.seenAt);
-    alerts.forEach((a) => known.current!.add(a.id));
-    if (added.length === 0) return;
-    setFresh({ ids: added.map((a) => a.id), at: Date.now() });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
-    notifyNewResults(added.length, added[0].id).catch(() => {});
+    const seenBefore = known.current;
+    const added = alerts.filter((a) => !seenBefore.has(a.id) && !a.seenAt);
+    const repeated = alerts.filter((a) => seenBefore.has(a.id) && !a.seenAt && a.lastRepeatAt && seenBefore.get(a.id) !== a.lastRepeatAt);
+    alerts.forEach((a) => seenBefore.set(a.id, a.lastRepeatAt));
+
+    if (added.length > 0) {
+      setFresh({ ids: added.map((a) => a.id), at: Date.now(), repeat: false });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      notifyNewResults(added.length, added[0].id).catch(() => {});
+    } else if (repeated.length > 0) {
+      setFresh({ ids: repeated.map((a) => a.id), at: Date.now(), repeat: true });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      notifyRepeat(repeated.length, repeated[0].id).catch(() => {});
+    }
   }, [alerts]);
 
   return fresh;
 }
 
-export type FreshAlerts = { ids: string[]; at: number } | null;
+export type FreshAlerts = { ids: string[]; at: number; repeat: boolean } | null;
 export const FreshAlertsContext = createContext<FreshAlerts>(null);
 export const useFreshAlerts = () => useContext(FreshAlertsContext);

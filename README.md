@@ -6,7 +6,7 @@ A safety-net alerting demo for Australian GPs. BloodLine reads incoming blood te
 - a value is **outside the range printed on the report**, or
 - it matches a **rule the GP set** for that patient.
 
-The AI only copies what's printed on the report; deterministic code does every check. BloodLine doesn't diagnose, decide urgency or replace the GP's usual review, and labs still phone through critical results. **All data in this repo is synthetic. Not for clinical use.**
+OCR only copies what's printed on the report; deterministic code does every check. BloodLine doesn't diagnose, decide urgency or replace the GP's usual review, and labs still phone through critical results. **All data in this repo is synthetic. Not for clinical use.**
 
 Full product requirements: [docs/PRD.md](docs/PRD.md).
 
@@ -14,9 +14,10 @@ Full product requirements: [docs/PRD.md](docs/PRD.md).
 
 | Folder | What it is |
 |---|---|
-| `web/` | Next.js app: the API, the presenter console (upload, live pipeline, AI reading, delivery, records) and a local SQLite database |
+| `web/` | Next.js app: the API, the presenter console (upload, live pipeline, OCR reading, delivery, records) and a local SQLite database |
 | `mobile/` | Expo (React Native) Android app for the GP: alerts, alert detail, patient rules, settings |
 | `docs/` | Product requirements |
+| `Website/` | Marketing site (Vite + GSAP), deployed to Cloudflare Pages. See [Website/README.md](Website/README.md) |
 
 ## One-time setup
 
@@ -32,7 +33,7 @@ Full product requirements: [docs/PRD.md](docs/PRD.md).
 
    | Variable | What for |
    |---|---|
-   | `OPENROUTER_API_KEY` | AI reading of report PDFs (Claude Haiku 5.5, about $0.0003 per report) |
+   | `OPENROUTER_API_KEY` | OCR of report PDFs (about $0.0003 per report) |
    | `RESEND_API_KEY`, `EMAIL_FROM` | Email alerts. `onboarding@resend.dev` only delivers to your Resend account's own email |
    | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` | SMS and phone-call alerts. A trial account can only reach verified numbers and can't send custom SMS text |
    | `DEMO_GP_EMAIL`, `DEMO_GP_MOBILE` | Where Dr Amelia Chen's (the demo GP's) alerts go. Mobile in `+61…` format |
@@ -96,12 +97,12 @@ Open three terminals.
 
 1. **Set up:** console on the projector, phone mirrored beside it, signed in as Dr Chen. In the console's **Delivery** panel, switch on Email, SMS and Phone call. Then switch on **Live messages** in the header (it asks for confirmation).
 2. **Upload:** drop a lab report PDF into "Send a lab report" (or use "Download a sample report" first), choose the patient, and click **Send to BloodLine**.
-3. **Watch:** the live pipeline lights up (report → AI reading → checks → alert → app, email, SMS, call). The AI reading panel shows the PDF being read and each value popping in with BloodLine's verdict.
+3. **Watch:** the live pipeline lights up (report → OCR → checks → alert → app, email, SMS, call). The OCR reading panel shows the PDF being read and each value popping in with BloodLine's verdict.
 4. **The phone:** the in-app alert arrives with a buzz, the SMS lands, and the phone rings. Open the alert to show the reasons, the printed range bar and the trend, then **Mark as seen**. The console's activity feed shows it as seen.
 5. **GP rules:** on the phone, open Patients → Tom Fletcher → New rule (or show the existing potassium rule), then send the **Matches a GP rule** quick scenario: potassium 5.1 is inside the printed range and unflagged, but still alerts because of the GP's own rule.
 6. **Safety touches:** send **Can't be checked** ("<0.01" isn't a plain number, so BloodLine says so instead of staying silent), and **Send duplicate** (ignored). Point out the audit trail in Records.
 
-Reset between rehearsals with **Reset demo**. Saved AI readings are kept, so repeat runs are instant and free.
+Reset between rehearsals with **Reset demo**. Saved OCR readings are kept, so repeat runs are instant and free.
 
 ## Development
 

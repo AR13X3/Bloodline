@@ -13,13 +13,13 @@ import { CHANNELS, SectionTitle } from "./bits";
 type NodeState = "idle" | "active" | "done" | "warn" | "alert" | "muted" | "error";
 
 const NODE_STYLES: Record<NodeState, string> = {
-  idle: "bg-card text-muted-foreground ring-border",
-  active: "bg-brand-soft text-brand ring-brand",
-  done: "bg-brand text-brand-foreground ring-brand",
-  warn: "bg-review-soft text-review-foreground ring-review",
+  idle: "bg-secondary text-muted-foreground ring-transparent",
+  active: "bg-brand-soft text-primary ring-ring",
+  done: "bg-primary text-primary-foreground ring-primary",
+  warn: "bg-review-soft text-review-foreground ring-review/60",
   alert: "bg-review text-white ring-review",
-  muted: "bg-muted text-muted-foreground ring-border",
-  error: "bg-destructive/10 text-destructive ring-destructive",
+  muted: "bg-secondary text-muted-foreground ring-transparent",
+  error: "bg-destructive/10 text-destructive ring-destructive/60",
 };
 
 function Node({
@@ -43,12 +43,12 @@ function Node({
       <div
         ref={nodeRef}
         className={cn(
-          "relative grid place-items-center shadow-sm ring-2 transition-colors duration-200 ease-out",
-          small ? "size-10 rounded-xl" : "size-16 rounded-2xl",
+          "relative grid place-items-center rounded-full ring-2 transition-colors duration-200 ease-out",
+          small ? "size-10" : "size-16",
           NODE_STYLES[state],
         )}
       >
-        <Icon className={small ? "size-4.5" : "size-6"} />
+        <Icon className={small ? "size-4.5" : "size-6"} strokeWidth={1.75} />
         <AnimatePresence>
           {state === "done" && !small ? (
             <motion.span
@@ -63,8 +63,9 @@ function Node({
           ) : null}
         </AnimatePresence>
       </div>
-      <div className={cn("leading-tight", small ? "min-w-20" : "")}>
-        <div className="text-xs font-semibold">{label}</div>
+      {/* Big nodes keep room for two lines, so a longer label doesn't shift the row. */}
+      <div className={cn("leading-tight", small ? "min-w-20" : "min-h-11")}>
+        <div className="text-sm font-medium">{label}</div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={sub}
@@ -72,7 +73,7 @@ function Node({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={fade(0, 0.15)}
-            className="text-[11px] whitespace-nowrap text-muted-foreground"
+            className={cn("text-[11px] text-muted-foreground", small ? "whitespace-nowrap" : "text-balance")}
           >
             {sub}
           </motion.div>
@@ -104,7 +105,7 @@ function useElapsed(run: LiveRun | null): string | null {
 export function PipelineCard({ run, connected }: { run: LiveRun | null; connected: boolean }) {
   const container = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
-  const aiRef = useRef<HTMLDivElement>(null);
+  const ocrRef = useRef<HTMLDivElement>(null);
   const checksRef = useRef<HTMLDivElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
   const channelRefs = {
@@ -121,7 +122,7 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
   const finished = Boolean(s.done || s.duplicate);
 
   const reportState: NodeState = !run ? "idle" : s.duplicate ? "warn" : "done";
-  const aiState: NodeState = s.read ? (read?.source === "failed" || read?.source === "fallback" ? "warn" : "done") : s.reading ? "active" : "idle";
+  const ocrState: NodeState = s.read ? (read?.source === "failed" || read?.source === "fallback" ? "warn" : "done") : s.reading ? "active" : "idle";
   const checksState: NodeState = s.checked ? (num(s.checked.detail, "couldntCheck") > 0 ? "warn" : "done") : s.read ? "active" : "idle";
   const alertState: NodeState = s.alerted ? (alertsCount > 0 ? "alert" : "done") : s.checked ? "active" : "idle";
 
@@ -139,15 +140,15 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
     return "—";
   };
 
-  const aiSub = !run
+  const ocrSub = !run
     ? "Waiting"
     : s.read
-      ? read?.source === "ai"
+      ? read?.source === "ocr"
         ? `${(((s.read.at ?? 0) - (s.reading?.at ?? 0)) / 1000).toFixed(1)} s · $${Number(read.costUsd ?? 0).toFixed(4)}`
         : read?.source === "cache"
           ? "Already read · instant"
           : read?.source === "fallback"
-            ? "AI unavailable"
+            ? "OCR unavailable"
             : "Couldn't read"
       : s.reading
         ? "Reading…"
@@ -169,8 +170,8 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
     repeat: 0,
     duration: 0.8,
     ...(reached
-      ? { gradientStartColor: warn ? "#f5a524" : "#14b8a6", gradientStopColor: warn ? "#d97706" : "#0f2a4a", pathColor: warn ? "#f5a524" : "#14b8a6", pathOpacity: 0.4 }
-      : { gradientStartColor: "transparent", gradientStopColor: "transparent", pathColor: "gray", pathOpacity: 0.18 }),
+      ? { gradientStartColor: warn ? "#e0a23f" : "#8ec4d4", gradientStopColor: warn ? "#b07a1e" : "#0f3b4b", pathColor: warn ? "#e0a23f" : "#2e869e", pathOpacity: 0.45 }
+      : { gradientStartColor: "transparent", gradientStopColor: "transparent", pathColor: "#a2b1b8", pathOpacity: 0.35 }),
   });
 
   return (
@@ -184,7 +185,7 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
             </motion.span>
           ) : null}
           {elapsed ? (
-            <span className={cn("rounded-full px-2 py-0.5 font-mono font-medium ring-1 ring-inset", finished ? "bg-success-soft text-[oklch(0.42_0.11_155)] ring-success/25" : "bg-brand-soft text-accent-foreground ring-brand/25")}>
+            <span className={cn("rounded-full px-2.5 py-1 font-mono font-medium", finished ? "bg-success-soft text-success" : "bg-brand-soft text-primary")}>
               {finished ? (s.duplicate ? "Duplicate · " : "Done · ") : ""}
               {elapsed}
             </span>
@@ -193,13 +194,14 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <div ref={container} className="relative grid grid-cols-[1fr_1fr_1fr_1fr_auto] items-center gap-4 px-2 py-6">
+      {/* On narrow screens the pipeline scrolls sideways rather than squashing the nodes together. */}
+      <CardContent className="overflow-x-auto">
+        <div ref={container} className="relative grid min-w-[33rem] grid-cols-[repeat(4,minmax(0,1fr))_auto] items-center gap-4 px-2 py-6">
           <div className="flex justify-center">
             <Node nodeRef={reportRef} icon={FileText} label="Lab report" sub={!run ? "Waiting" : s.duplicate ? "Duplicate ignored" : run.steps.received?.detail?.origin === "upload" ? "Uploaded" : "From simulator"} state={reportState} />
           </div>
           <div className="flex justify-center">
-            <Node nodeRef={aiRef} icon={ScanText} label="AI reading" sub={aiSub} state={aiState} />
+            <Node nodeRef={ocrRef} icon={ScanText} label="OCR" sub={ocrSub} state={ocrState} />
           </div>
           <div className="flex justify-center">
             <Node nodeRef={checksRef} icon={ShieldCheck} label="Checks" sub={checksSub} state={checksState} />
@@ -213,8 +215,8 @@ export function PipelineCard({ run, connected }: { run: LiveRun | null; connecte
             ))}
           </div>
 
-          <AnimatedBeam containerRef={container} fromRef={reportRef} toRef={aiRef} {...beam(Boolean(s.reading))} />
-          <AnimatedBeam containerRef={container} fromRef={aiRef} toRef={checksRef} {...beam(Boolean(s.read), aiState === "warn")} />
+          <AnimatedBeam containerRef={container} fromRef={reportRef} toRef={ocrRef} {...beam(Boolean(s.reading))} />
+          <AnimatedBeam containerRef={container} fromRef={ocrRef} toRef={checksRef} {...beam(Boolean(s.read), ocrState === "warn")} />
           <AnimatedBeam containerRef={container} fromRef={checksRef} toRef={alertRef} {...beam(Boolean(s.checked))} />
           {CHANNELS.map((c, i) => {
             const state = channelState(c.key);

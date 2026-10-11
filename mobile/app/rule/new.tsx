@@ -7,7 +7,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, Sc
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApi } from "@/api";
-import { Button, Card, SectionLabel, Segmented, T, formatDate } from "@/components/ui";
+import { Button, Card, IconButton, SectionLabel, Segmented, STROKE, T, Title, formatDate } from "@/components/ui";
 import { fade, rise } from "@/motion";
 import { useSession } from "@/session";
 import { colors, fonts, radius } from "@/theme";
@@ -57,7 +57,7 @@ export default function NewRuleScreen() {
   if (!patient.data) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.teal} />
+        <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
@@ -68,9 +68,9 @@ export default function NewRuleScreen() {
       <View style={styles.center}>
         <Animated.View entering={rise()} style={{ alignItems: "center" }}>
           <View style={styles.done}>
-            <Check size={44} color={colors.white} strokeWidth={3} />
+            <Check size={42} color={colors.white} strokeWidth={2.5} />
           </View>
-          <T weight="semibold" size={18} style={{ marginTop: 18 }}>
+          <T weight="medium" size={20} style={{ marginTop: 18 }}>
             Rule saved
           </T>
         </Animated.View>
@@ -80,23 +80,17 @@ export default function NewRuleScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingTop: insets.top + 8, paddingBottom: insets.bottom + 120, gap: 18 }}>
-        <Pressable onPress={() => (reviewing ? setReviewing(false) : router.back())} hitSlop={12} style={styles.back}>
-          <ArrowLeft size={22} color={colors.navy} />
-        </Pressable>
-        <View>
-          <T weight="bold" size={26}>
-            {reviewing ? "Check your rule" : "New rule"}
-          </T>
-        </View>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18, paddingTop: insets.top + 10, paddingBottom: insets.bottom + 120, gap: 22 }}>
+        <IconButton icon={ArrowLeft} label="Back" onPress={() => (reviewing ? setReviewing(false) : router.back())} />
+        <Title strong={reviewing ? "Check your rule" : "New rule"} />
 
         {reviewing && test && threshold !== null ? (
           <Animated.View entering={rise()} style={{ gap: 14 }}>
-            <Card style={{ gap: 10, borderColor: colors.teal, borderWidth: 1 }}>
-              <T size={13} color={colors.textMuted}>
+            <Card style={{ gap: 10, padding: 22 }}>
+              <T size={14} color={colors.textMuted}>
                 BloodLine will alert you if
               </T>
-              <T weight="bold" size={22} style={{ lineHeight: 30 }}>
+              <T weight="medium" size={24} color={colors.ink} style={{ lineHeight: 31 }}>
                 {first}&apos;s {test.name} is {direction} {threshold} {test.unit}
               </T>
               <T size={14} color={colors.textMuted}>
@@ -109,8 +103,8 @@ export default function NewRuleScreen() {
               ) : null}
             </Card>
             <View style={styles.info}>
-              <Info size={15} color={colors.textMuted} />
-              <T size={12} color={colors.textMuted} style={{ flex: 1, lineHeight: 17 }}>
+              <Info size={16} color={colors.textMuted} strokeWidth={STROKE} />
+              <T size={13} color={colors.textMuted} style={{ flex: 1, lineHeight: 18 }}>
                 &ldquo;{direction === "above" ? "Above" : "Below"} {threshold}&rdquo; means strictly {direction === "above" ? "greater" : "less"} than {threshold}. Results in other units can&apos;t
                 be compared, so BloodLine will tell you instead of guessing.
               </T>
@@ -121,7 +115,7 @@ export default function NewRuleScreen() {
             <View>
               <SectionLabel>Test</SectionLabel>
               <View style={styles.search}>
-                <Search size={16} color={colors.textFaint} />
+                <Search size={18} color={colors.textMuted} strokeWidth={STROKE} />
                 <TextInput value={search} onChangeText={setSearch} placeholder="Search tests" placeholderTextColor={colors.textFaint} style={styles.searchInput} />
               </View>
               <View style={styles.testGrid}>
@@ -129,7 +123,7 @@ export default function NewRuleScreen() {
                   const active = test?.id === t.id;
                   return (
                     <Pressable key={t.id} onPress={() => setTest(t)} style={[styles.testChip, active && styles.testChipActive]}>
-                      <T weight={active ? "semibold" : "medium"} size={13} color={active ? colors.white : colors.text}>
+                      <T weight={active ? "semibold" : "regular"} size={14} color={active ? colors.ink : colors.text}>
                         {t.name}
                       </T>
                     </Pressable>
@@ -149,7 +143,7 @@ export default function NewRuleScreen() {
                   <SectionLabel>Value</SectionLabel>
                   <View style={[styles.valueBox, valueError && { borderColor: colors.red }]}>
                     <TextInput value={value} onChangeText={setValue} keyboardType="decimal-pad" placeholder="0.0" placeholderTextColor={colors.textFaint} style={styles.valueInput} />
-                    <T weight="semibold" size={16} color={colors.textMuted}>
+                    <T size={17} color={colors.textMuted}>
                       {test.unit}
                     </T>
                   </View>
@@ -159,8 +153,8 @@ export default function NewRuleScreen() {
                     </T>
                   ) : null}
                   <View style={[styles.info, { marginTop: 10 }]}>
-                    <Info size={15} color={colors.textMuted} />
-                    <T size={12} color={colors.textMuted} style={{ flex: 1, lineHeight: 17 }}>
+                    <Info size={16} color={colors.textMuted} strokeWidth={STROKE} />
+                    <T size={13} color={colors.textMuted} style={{ flex: 1, lineHeight: 18 }}>
                       {test.latestRange
                         ? `Range printed on ${first}'s latest report: ${test.latestRange} ${test.unit}. Unit is fixed to ${test.unit}.`
                         : `Illustrative range only (no report for ${first} yet): ${test.illustrativeRange} ${test.unit}. Unit is fixed to ${test.unit}.`}
@@ -183,7 +177,7 @@ export default function NewRuleScreen() {
         )}
       </ScrollView>
 
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.bottom, { paddingBottom: insets.bottom + 14 }]}>
         {reviewing ? (
           <Button label="Save rule" loading={save.isPending} onPress={() => save.mutate()} />
         ) : (
@@ -196,16 +190,15 @@ export default function NewRuleScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
-  back: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.white, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border },
-  search: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.white, borderRadius: radius.md, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.border, marginBottom: 10 },
-  searchInput: { flex: 1, paddingVertical: 10, fontFamily: fonts.regular, fontSize: 14, color: colors.text },
+  search: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.white, borderRadius: radius.pill, paddingHorizontal: 18, marginBottom: 12 },
+  searchInput: { flex: 1, paddingVertical: 14, fontFamily: fonts.regular, fontSize: 15, color: colors.text },
   testGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  testChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border },
-  testChipActive: { backgroundColor: colors.navy, borderColor: colors.navy },
-  valueBox: { flexDirection: "row", alignItems: "center", backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16 },
-  valueInput: { flex: 1, paddingVertical: 14, fontFamily: fonts.bold, fontSize: 28, color: colors.text },
-  info: { flexDirection: "row", gap: 8, alignItems: "flex-start", backgroundColor: colors.navySoft, borderRadius: radius.md, padding: 12 },
-  note: { backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: fonts.regular, fontSize: 14, color: colors.text },
-  done: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.green, alignItems: "center", justifyContent: "center" },
-  bottom: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: "rgba(245,247,251,0.96)", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  testChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.pill, backgroundColor: colors.white },
+  testChipActive: { backgroundColor: colors.sky },
+  valueBox: { flexDirection: "row", alignItems: "center", backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1, borderColor: colors.white, paddingHorizontal: 20 },
+  valueInput: { flex: 1, paddingVertical: 14, fontFamily: fonts.light, fontSize: 36, color: colors.ink },
+  info: { flexDirection: "row", gap: 10, alignItems: "flex-start", backgroundColor: colors.mist, borderRadius: radius.md, padding: 14 },
+  note: { backgroundColor: colors.white, borderRadius: radius.md, paddingHorizontal: 18, paddingVertical: 16, fontFamily: fonts.regular, fontSize: 15, color: colors.text },
+  done: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
+  bottom: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 18, paddingTop: 12, backgroundColor: "rgba(241,244,246,0.96)" },
 });
