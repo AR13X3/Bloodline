@@ -58,7 +58,7 @@ interface ClinicianContact {
 
 export async function notifyRecipient(
   db: DatabaseSync,
-  input: { clinicianId: string; alertId: string; resultCount: number },
+  input: { clinicianId: string; alertId: string; resultCount: number; sourceMessageId?: string },
 ): Promise<NotificationOutcome[]> {
   const gp = db
     .prepare("SELECT id, name, email, mobile, notify_email, notify_sms, notify_voice FROM clinicians WHERE id = ?")
@@ -103,7 +103,7 @@ export async function notifyRecipient(
   rows.forEach((o, i) => {
     insert.run(randomUUID(), input.alertId, o.channel, o.recipient, o.status, o.providerId, o.detail, now);
     audit(db, { actor: "system", action: `notification.${o.status}`, entityType: "alert", entityId: input.alertId, detail: { channel: o.channel, detail: o.detail } }, now);
-    emit({ type: "notification", alertId: input.alertId, channel: o.channel, status: o.status, recipient: o.recipient, detail: o.detail });
+    emit({ type: "notification", alertId: input.alertId, sourceMessageId: input.sourceMessageId ?? null, channel: o.channel, status: o.status, recipient: o.recipient, detail: o.detail });
     if (i > 0) outcomes.push({ channel: o.channel, status: o.status, recipient: o.recipient, detail: o.detail });
   });
   return outcomes;

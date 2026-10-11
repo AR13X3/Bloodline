@@ -241,7 +241,7 @@ export async function ingestReport(db: DatabaseSync, input: IngestInput): Promis
     else byRecipient.set(a.recipientId, { firstAlertId: a.id, count: 1 });
   }
   for (const [recipientId, { firstAlertId, count }] of byRecipient) {
-    const outcomes = await notifyRecipient(db, { clinicianId: recipientId, alertId: firstAlertId, resultCount: count });
+    const outcomes = await notifyRecipient(db, { clinicianId: recipientId, alertId: firstAlertId, resultCount: count, sourceMessageId: input.sourceMessageId });
     summary.notifications.push(...outcomes.map((o) => ({ ...o, recipientId })));
   }
   if (byRecipient.size > 0) step("notified", reportId, { notifications: summary.notifications.length });
