@@ -1145,6 +1145,12 @@ These resolve open questions above. They are demo defaults and can be revisited.
 | — | The demo GP's email and mobile come from `DEMO_GP_EMAIL` and `DEMO_GP_MOBILE` in `.env.local`, so they survive "Reset demo". |
 | — | Voice calls can play a pre-recorded message from `VOICE_MESSAGE_URL` (e.g. hosted on Twilio Assets), twice. Without it, calls use a computer voice. |
 | — | Twilio status at 2026-10-11: still a trial account; no phone numbers or verified caller IDs found under the configured credentials. To resolve before the demo (Q20). |
+| Q13 (revised) | One nudge per GP per report, however many results alerted: "You have N new results to review." Avoids several calls for one report. |
+| FR-14, FR-15 (revised) | A test BloodLine doesn't recognise, or a unit that isn't the test's fixed unit, is still checked against the range printed on the same row (value and range share a unit on that row). Only GP rules are skipped, and any rule owner for that test is told "couldn't check". So realistic uploads don't produce a "couldn't check" for every unfamiliar row. |
+| — | 37 recognised blood tests (FBC, kidney, liver, lipids, glucose, thyroid, iron, vitamins, inflammation, bone, PSA). |
+| — | The AI also reads the patient's name. If it doesn't match the patient the report was filed against, BloodLine warns on the console and in the app. It never re-routes by name. |
+| — | Uploads choose a patient and a requesting GP (defaults to the demo GP). Sample synthetic report PDFs can be downloaded from the console to demonstrate the upload flow. |
+| — | Real email/SMS/calls only go out when the presenter switches **Live messages** on (default off, with a confirmation) and the provider keys are set; otherwise they're logged as "simulated". |
 
 ---
 
