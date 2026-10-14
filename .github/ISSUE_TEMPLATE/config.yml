@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/AR13X3/Bloodline/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.
+  - name: Talk to the team
+    url: https://ar13x3.github.io/Bloodline/connect
+    about: Interested in the pilot, or want to chat? Find us on LinkedIn.

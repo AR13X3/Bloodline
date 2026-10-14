@@ -202,6 +202,10 @@ Product, design and code by the BloodLine team above.
 
 Built on open-source work we're grateful for, including [Next.js](https://nextjs.org), [Expo](https://expo.dev) and [React Native](https://reactnative.dev), [GSAP](https://gsap.com), [Lenis](https://lenis.darkroom.engineering), [Vite](https://vite.dev), [Radix UI](https://www.radix-ui.com), [shadcn/ui](https://ui.shadcn.com), [Lucide](https://lucide.dev) icons, [pdf-lib](https://pdf-lib.js.org), [TanStack Query](https://tanstack.com/query) and [Zod](https://zod.dev). Typefaces: [Urbanist](https://fonts.google.com/specimen/Urbanist), [Atkinson Hyperlegible](https://fonts.google.com/specimen/Atkinson+Hyperlegible) and [Geist Mono](https://vercel.com/font). Evidence and market figures cite their sources in the [PRD](docs/PRD.md#20-sources).
 
+## Contributing
+
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), and please follow our [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](SECURITY.md). Accessibility status and known gaps are in [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
 ## License
 
 BloodLine is open source under the [Apache License 2.0](LICENSE). The website's background video (made with Halation) and the BloodLine name and logo aren't covered; [NOTICE](NOTICE) has the details.

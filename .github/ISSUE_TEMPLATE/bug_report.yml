@@ -1,0 +1,50 @@
+name: Bug report
+description: Something in BloodLine doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      options:
+        - GP app (mobile)
+        - Presenter console or API (web)
+        - Website
+        - Docs
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include any error message, and a screenshot if it helps.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Send the "Matches a GP rule" quick scenario
+        2. Open the alert in the GP app
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Device and browser
+      description: For example "Pixel 7, Android 16, Expo Go" or "Windows 11, Chrome". Include any assistive technology you use.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Patient privacy
+      options:
+        - label: This report contains no real patient information.
+          required: true
