@@ -8,6 +8,9 @@ node_modules/
 # local demo data (synthetic database and report PDFs)
 web/data/
 
+# private pitch prep (Q&A sheets, slide cues)
+docs/exports/
+
 # build output
 .next/
 .expo/
