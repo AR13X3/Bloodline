@@ -22,3 +22,8 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# local AI assistant files
+.claude/
+CLAUDE.md
+web/AGENTS.md
