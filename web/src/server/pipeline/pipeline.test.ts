@@ -142,7 +142,7 @@ describe("ingestReport with OCR and live messages (network mocked)", () => {
       EMAIL_FROM: "BloodLine <onboarding@resend.dev>",
       TWILIO_ACCOUNT_SID: "ACtest",
       TWILIO_AUTH_TOKEN: "token",
-      TWILIO_FROM_NUMBER: "+17372508034",
+      TWILIO_FROM_NUMBER: "+15005550006",
     });
     const calls: { url: string; body: string }[] = [];
     vi.stubGlobal(
@@ -195,7 +195,7 @@ describe("ingestReport with OCR and live messages (network mocked)", () => {
   });
 
   it("records a failed send without stopping the pipeline", async () => {
-    Object.assign(process.env, { TWILIO_ACCOUNT_SID: "ACtest", TWILIO_AUTH_TOKEN: "token", TWILIO_FROM_NUMBER: "+17372508034" });
+    Object.assign(process.env, { TWILIO_ACCOUNT_SID: "ACtest", TWILIO_AUTH_TOKEN: "token", TWILIO_FROM_NUMBER: "+15005550006" });
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ code: 21608, message: "The number is unverified" }, { status: 400 })));
     const db = freshDb({ demoGpEmail: null, demoGpMobile: "+61400000823" });
     setSetting(db, "live_messages", "on");
